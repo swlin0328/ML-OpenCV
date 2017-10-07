@@ -1,4 +1,4 @@
-#include <cmath>
+ï»¿#include <cmath>
 #include <vector>
 #include <numeric>
 #include <random>
@@ -45,7 +45,7 @@ using namespace Linear_Algebra;
 using namespace std::chrono;
 namespace NLP_lib
 {
-	//°V½m¨ç¼Æ
+	//è¨“ç·´å‡½æ•¸
 	set<string> tokenize(string text);
 
 	map<string, vector<int>> count_words(vector<pair<string, bool>>& training_set);
@@ -78,13 +78,13 @@ namespace NLP_lib
 
 	double cosine_similarity(vector<int>& v, vector<int>& w);
 
-	//NLP¤ÀÃş¾¹
+	//NLPåˆ†é¡å™¨
 	/*
 	simplified Bayes
 	P(V,S) = P(V|S) * P(S) = P(S|V) * P(V)
 	P(S|V) = P(V|S) * P(S) / [P(V|S) * P(S) + P (V|-S) P(-S)]
 	*/
-	//¨©¤ó¤ÀÃş¾¹
+	//è²æ°åˆ†é¡å™¨
 	class NaiveBayesClassifier
 	{
 	private:
@@ -97,7 +97,7 @@ namespace NLP_lib
 		NaiveBayesClassifier(double k = 0.5) :leraning_Constant(k) {}
 	};
 
-	//n-gram¼Ò«¬
+	//n-gramæ¨¡å‹
 	class n_gram
 	{
 	private:
@@ -111,20 +111,20 @@ namespace NLP_lib
 		string generate_using_model();
 	};
 
-	//¥DÃD¼Ò«¬¤Æ
+	//ä¸»é¡Œæ¨¡å‹åŒ–
 	/*
-	¥DÃD¼Æ¶q K
-	¤å¥ód ¥DÃDn ¾÷²v
-	¥DÃDn ³æµüw ¾÷²v
+	ä¸»é¡Œæ•¸é‡ K
+	æ–‡ä»¶d ä¸»é¡Œn æ©Ÿç‡
+	ä¸»é¡Œn å–®è©w æ©Ÿç‡
 
-	ÀH¾÷¬D¿ï¥DÃD--> ÀH¾÷¬D¿ï³æµü
+	éš¨æ©ŸæŒ‘é¸ä¸»é¡Œ--> éš¨æ©ŸæŒ‘é¸å–®è©
 	*/
 	class K_topic_given_document
 	{
 	private:
-		vector<vector<int>> document_topic_count; //¨C­Ó¤å¥ó¤¤¡A¨C­Ó¥DÃD¥X²{¦¸¼Æ
-		vector<map<string, int>> topic_word_count; //¨C­Ó¥DÃD¤¤¡A¨C­Ó³æµü¥X²{ªº¦¸¼Æ
-		vector<int> topic_words_count; //¨C­Ó¥DÃD¤¤¡A³æµüªºÁ`¼Æ¶q
+		vector<vector<int>> document_topic_count; //æ¯å€‹æ–‡ä»¶ä¸­ï¼Œæ¯å€‹ä¸»é¡Œå‡ºç¾æ¬¡æ•¸
+		vector<map<string, int>> topic_word_count; //æ¯å€‹ä¸»é¡Œä¸­ï¼Œæ¯å€‹å–®è©å‡ºç¾çš„æ¬¡æ•¸
+		vector<int> topic_words_count; //æ¯å€‹ä¸»é¡Œä¸­ï¼Œå–®è©çš„ç¸½æ•¸é‡
 		vector<vector<int>> documents_topics;
 		vector<int> document_length;
 		int K;
@@ -144,7 +144,7 @@ namespace NLP_lib
 		void show_result(int n = 2);
 	};
 
-	//¨Ï¥ÎªÌºô¸ô¤ÀÃş
+	//ä½¿ç”¨è€…ç¶²è·¯åˆ†é¡
 	class users_information
 	{
 	private:

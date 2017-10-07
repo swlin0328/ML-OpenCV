@@ -1,4 +1,4 @@
-#include <cmath>
+ï»¿#include <cmath>
 #include <vector>
 #include <numeric>
 #include <random>
@@ -23,10 +23,10 @@
 
 using namespace std;
 using namespace std::chrono;
-//½u¥N¤u¨ã
+//ç·šä»£å·¥å…·
 namespace Linear_Algebra
 {
-	//¦V¶q¹Bºâ
+	//å‘é‡é‹ç®—
 	template<typename T, typename U>
 	void vector_length_queal(const vector<T>& v, const vector<U> & w);
 
@@ -67,7 +67,7 @@ namespace Linear_Algebra
 
 	double distance(const vector<double>& v, const vector<double>& w);
 
-	//¦V¶q·L¿n¤À
+	//å‘é‡å¾®ç©åˆ†
 	double difference_quotient(function<double(double)> f, const double x, double h = 0.001);
 
 	double partial_difference_quotient(function<double(vector<double>&)> f, vector<double> v, int i, double h = 0.001);
@@ -100,7 +100,7 @@ namespace Linear_Algebra
 
 	vector<double> direction(vector<double> v);
 
-	//¦V¶qÂà´«
+	//å‘é‡è½‰æ›
 	double directional_variance_i(const vector<double>& x_i, const vector<double>& w);
 
 	double directional_variance(const vector<vector<double>>& X, const vector<double>& w);
@@ -123,7 +123,7 @@ namespace Linear_Algebra
 
 	vector<vector<double>> trnsform_X(vector<vector<double>> X, vector<vector<double>> components);
 
-	//¯x°}¤u¨ã
+	//çŸ©é™£å·¥å…·
 	void make_Matrix(vector<vector<double>>& matrix, int row, int col);
 
 	vector<vector<double>> transpose(vector<vector<double>> &X);

@@ -1,24 +1,24 @@
-/*****************************************************************************
+ï»¿/*****************************************************************************
 ----------------------------Warning----------------------------------------
 
-¦¹¬qµ{¦¡½X¶È¨Ñ ªL®Ñ½n¥»¤H ¼i¾ú±M¥Î§@«~¶°¡A¥¼¸g³\¥i½Ğ¤Å¨Ï¥Î»P´²¼½
-³¡¤Àµ{¦¡½X§ï¦Û
+æ­¤æ®µç¨‹å¼ç¢¼åƒ…ä¾› æ—æ›¸ç·¯æœ¬äºº å±¥æ­·å°ˆç”¨ä½œå“é›†ï¼Œæœªç¶“è¨±å¯è«‹å‹¿ä½¿ç”¨èˆ‡æ•£æ’­
+éƒ¨åˆ†ç¨‹å¼ç¢¼æ”¹è‡ª
 
 ---O'Reilly, "Data Science from Scratch", Joel Grus, ISBN 978-1-4979-0142-7
----³ÕºÓ, "Python ¾÷¾¹¾Ç²ß", Sebastian Raschka", ISBN 978-986-434-140-5
-ªºPythonµ{¦¡½X
+---åšç¢©, "Python æ©Ÿå™¨å­¸ç¿’", Sebastian Raschka", ISBN 978-986-434-140-5
+çš„Pythonç¨‹å¼ç¢¼
 
----ùÖ®p, "The C++ Programming Language", Bjarne Stroustrup, ISBN 978-986-347-603-0
-ªºC++½d¨Òµ{¦¡
+---ç¢å³°, "The C++ Programming Language", Bjarne Stroustrup, ISBN 978-986-347-603-0
+çš„C++ç¯„ä¾‹ç¨‹å¼
 
----code by ªL®Ñ½n 2017/09/26
+---code by æ—æ›¸ç·¯ 2017/09/26
 ******************************************************************************/
 #include "unSupervise_Learning.h"
 
-//«DºÊ·ş¦¡¾Ç²ß
+//éç›£ç£å¼å­¸ç¿’
 namespace unSupervise_Learning
 {
-	//°V½m¨ç¼Æ
+	//è¨“ç·´å‡½æ•¸
 	void k_means::train(const vector<vector<double>>& data, double precision)
 	{
 		Statistics::Rand_uniform_Int rand(0, data.size()-1);

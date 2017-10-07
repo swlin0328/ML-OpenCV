@@ -1,8 +1,8 @@
-#include "DemoML.h"
+ï»¿#include "DemoML.h"
 
 void Demo_Neuron()
 {
-	string Path{ R"(C:\Users\Acer\Desktop\ML§@«~¶°2017.10.01\´ú¸Õ¼Æ¾Ú¶°\neuron_dataset_´ú¸Õ§¹¦¨\neuron_dataset.txt)" };
+	string Path{ R"(C:\Users\Acer\Desktop\MLä½œå“é›†2017.10.01\æ¸¬è©¦æ•¸æ“šé›†\neuron_dataset_æ¸¬è©¦å®Œæˆ\neuron_dataset.txt)" };
 	vector<vector<double>> X, train_X, validate_X;
 	vector<double> Y, train_Y, validate_Y;
 	vector<string> lable{ "Iris-virginica", "Iris-versicolor", "Iris-setosa" };
@@ -34,8 +34,8 @@ void Demo_Neuron()
 
 void Demo_NeuralNetwork()
 {
-	string train_Path{ R"(C:\Users\Acer\Desktop\ML§@«~¶°2017.10.01\´ú¸Õ¼Æ¾Ú¶°\nearalNetwork_dataset_´ú¸Õ§¹¦¨\training_dataset.txt)" };
-	string test_Path{ R"(C:\Users\Acer\Desktop\ML§@«~¶°2017.10.01\´ú¸Õ¼Æ¾Ú¶°\nearalNetwork_dataset_´ú¸Õ§¹¦¨\test_¼Æ¦r¤Tand¤K.txt)" };
+	string train_Path{ R"(C:\Users\Acer\Desktop\MLä½œå“é›†2017.10.01\æ¸¬è©¦æ•¸æ“šé›†\nearalNetwork_dataset_æ¸¬è©¦å®Œæˆ\training_dataset.txt)" };
+	string test_Path{ R"(C:\Users\Acer\Desktop\MLä½œå“é›†2017.10.01\æ¸¬è©¦æ•¸æ“šé›†\nearalNetwork_dataset_æ¸¬è©¦å®Œæˆ\test_æ•¸å­—ä¸‰andå…«.txt)" };
 	vector<vector<double>> train_X, validate_X;
 	vector<vector<double>> train_Y, validate_Y;
 
@@ -60,7 +60,7 @@ void Demo_NeuralNetwork()
 
 void Demo_DecisionTree()
 {
-	string Path{ R"(C:\Users\Acer\Desktop\ML§@«~¶°2017.10.01\´ú¸Õ¼Æ¾Ú¶°\decisionTree_dataset_´ú¸Õ§¹¦¨\decisionTree_dataset.txt)" };
+	string Path{ R"(C:\Users\Acer\Desktop\MLä½œå“é›†2017.10.01\æ¸¬è©¦æ•¸æ“šé›†\decisionTree_dataset_æ¸¬è©¦å®Œæˆ\decisionTree_dataset.txt)" };
 	vector<pair<map<string, string>, string>> test_dataset;
 	vector<map<string, string>> X, demo_X, train_X, validate_X;
 	vector<string> Y, demo_Y, train_Y, validate_Y;
@@ -86,7 +86,7 @@ void Demo_DecisionTree()
 
 void Demo_Ngram()
 {
-	string Path{ R"(C:\Users\Acer\Desktop\ML§@«~¶°2017.10.01\´ú¸Õ¼Æ¾Ú¶°\Ngram_dataset_´ú¸Õ§¹¦¨\Ngram_dataset.txt)" };
+	string Path{ R"(C:\Users\Acer\Desktop\MLä½œå“é›†2017.10.01\æ¸¬è©¦æ•¸æ“šé›†\Ngram_dataset_æ¸¬è©¦å®Œæˆ\Ngram_dataset.txt)" };
 	string paragraph;
 
 	//--------------------load data--------------------
@@ -106,7 +106,7 @@ void Demo_Ngram()
 void Demo_Kmeans()
 {
 	using namespace cv;
-	string Path{ R"(C:\Users\Acer\Desktop\ML§@«~¶°2017.10.01\´ú¸Õ¼Æ¾Ú¶°\Kmeans_dataset_´ú¸Õ§¹¦¨\Kmeans_dataset.jpg)" };
+	string Path{ R"(C:\Users\Acer\Desktop\MLä½œå“é›†2017.10.01\æ¸¬è©¦æ•¸æ“šé›†\Kmeans_dataset_æ¸¬è©¦å®Œæˆ\Kmeans_dataset.jpg)" };
 	
 	//--------------------load image--------------------
 	Mat img = imread(Path, CV_LOAD_IMAGE_COLOR);
@@ -157,7 +157,7 @@ void Demo_random_forest()
 {
 	Supervise_Learning::random_forest forest;
 
-	string Path{ R"(C:\Users\Acer\Desktop\ML§@«~¶°2017.10.01\´ú¸Õ¼Æ¾Ú¶°\randomForest_dataset\randomForest_dataset.txt)" };
+	string Path{ R"(C:\Users\Acer\Desktop\MLä½œå“é›†2017.10.01\æ¸¬è©¦æ•¸æ“šé›†\randomForest_dataset\randomForest_dataset.txt)" };
 	vector<pair<map<string, string>, string>> test_dataset;
 	vector<map<string, string>> X, demo_X, train_X, validate_X;
 	vector<string> Y, demo_Y, train_Y, validate_Y;

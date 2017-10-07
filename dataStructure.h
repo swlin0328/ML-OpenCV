@@ -1,4 +1,4 @@
-#include <string>
+ï»¿#include <string>
 #include <vector>
 #include <map>
 #include <memory>
@@ -9,7 +9,7 @@
 using namespace std;
 namespace dataStructure
 {
-	//¨Mµ¦¾ğ¸ê®Æµ²ºc
+	//æ±ºç­–æ¨¹è³‡æ–™çµæ§‹
 	struct tree_node
 	{
 		tree_node(vector<pair<map<string, string>, string>>& data) : dataset(data) { }
@@ -25,7 +25,7 @@ namespace dataStructure
 		vector<pair<map<string, string>, string>> dataset;
 	};
 
-	//¶°¸s¨Ï¥Î¸ê®Æµ²ºc
+	//é›†ç¾¤ä½¿ç”¨è³‡æ–™çµæ§‹
 	static struct cluster_build_count
 	{
 		int count = 0;
@@ -67,7 +67,7 @@ namespace dataStructure
 		};
 	};
 
-	//¨Ï¥ÎªÌºô¸ô¸ê®Æµ²ºc
+	//ä½¿ç”¨è€…ç¶²è·¯è³‡æ–™çµæ§‹
 	static struct user_build_count
 	{
 		int user_created = 0;

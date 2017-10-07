@@ -1,4 +1,4 @@
-#include <cmath>
+ï»¿#include <cmath>
 #include <vector>
 #include <numeric>
 #include <random>
@@ -33,7 +33,7 @@
 using namespace std;
 namespace dataManipulate
 {
-	//¸ê®ÆÅª¨ú
+	//è³‡æ–™è®€å–
 	int load_Data_With_Bias(string path, vector<vector<double>>& X, vector<double>& Y, const function<double(const string&)>& encoder, string cmd, int dim = 0);
 
 	int load_Data_NoBias_NN(string path, vector<vector<double>>& X, vector<vector<double>>& Y, const function<double(const string&)>& encoder, string cmd, int input_dim, int output_dim);
@@ -50,7 +50,7 @@ namespace dataManipulate
 
 	void readParagraph(string path, string& paragraph);
 
-	//¸ê®Æ³B²z
+	//è³‡æ–™è™•ç†
 	vector<string> string_partition(const string &source, char delim = '\n');
 
 	void split_data(vector< pair<vector<double>, double> >& data, vector<pair<vector<double>, double>>& train, vector<pair<vector<double>, double>>& test, double trainSize = 0.8);

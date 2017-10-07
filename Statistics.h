@@ -1,4 +1,4 @@
-#include <cmath>
+ï»¿#include <cmath>
 #include <vector>
 #include <numeric>
 #include <random>
@@ -29,7 +29,7 @@ using namespace std;
 using namespace std::chrono;
 namespace Statistics
 {
-	//¶Ã¼Æ²£¥Í¾¹
+	//äº‚æ•¸ç”¢ç”Ÿå™¨
 	class Rand_normal_double
 	{
 	public:
@@ -75,7 +75,7 @@ namespace Statistics
 		function<double()> r;
 	};
 
-	//¼Æ­È²Î­p
+	//æ•¸å€¼çµ±è¨ˆ
 	template<typename T>
 	vector<T> unique_labels(vector<T> labels);
 
@@ -114,7 +114,7 @@ namespace Statistics
 
 	void first_N_maxVal(vector<double>& source, deque<pair<int, double>>& result, int N);
 
-	//¼Æ­È¤À²Õ
+	//æ•¸å€¼åˆ†çµ„
 	template<typename T, typename U>
 	void makePair(vector<T>& v, vector<U>& w, vector<pair<T, U> > & result);
 
@@ -135,7 +135,7 @@ namespace Statistics
 
 	void unPair(vector<pair<map<string, string>, string>>& source, vector<map<string, string>>& v, vector<string>& w);
 
-	//¼Æ¾Ú¹w³B²z
+	//æ•¸æ“šé è™•ç†
 	double dataRange(vector<double>& v);
 
 	void deMean(vector<double>& v);
@@ -154,7 +154,7 @@ namespace Statistics
 
 	void makeVector(vector<double>& v, vector<vector<double>>& result);
 
-	//²Î­p¨ç¼Æ
+	//çµ±è¨ˆå‡½æ•¸
 	int uniform_pdf(double x);
 
 	double uniform_cdf(double x);
@@ -190,12 +190,12 @@ namespace Statistics
 	template<typename T>
 	vector<int> count_tp_fp_fn_tn(vector<T> lables, vector<T> predicts);
 
-	//¼Æ­ÈÁY©ñ
+	//æ•¸å€¼ç¸®æ”¾
 	void rescale(vector<double>& data);
 
 	void rescale(vector<vector<double>>& data, int start_index = 1);
 
-	//²Î­p¤ÀªR
+	//çµ±è¨ˆåˆ†æ
 	double accuracy(int tp, int fp, int fn, int tn);
 
 	double precision(int tp, int fp, int fn, int tn);

@@ -1,21 +1,21 @@
-/*****************************************************************************
+ï»¿/*****************************************************************************
 ----------------------------Warning----------------------------------------
 
-¦¹¬qµ{¦¡½X¶È¨Ñ ªL®Ñ½n¥»¤H ¼i¾ú±M¥Î§@«~¶°¡A¥¼¸g³\¥i½Ğ¤Å¨Ï¥Î»P´²¼½
-³¡¤Àµ{¦¡½X§ï¦Û
+æ­¤æ®µç¨‹å¼ç¢¼åƒ…ä¾› æ—æ›¸ç·¯æœ¬äºº å±¥æ­·å°ˆç”¨ä½œå“é›†ï¼Œæœªç¶“è¨±å¯è«‹å‹¿ä½¿ç”¨èˆ‡æ•£æ’­
+éƒ¨åˆ†ç¨‹å¼ç¢¼æ”¹è‡ª
 
 ---O'Reilly, "Data Science from Scratch", Joel Grus, ISBN 978-1-4979-0142-7
----³ÕºÓ, "Python ¾÷¾¹¾Ç²ß", Sebastian Raschka", ISBN 978-986-434-140-5
-ªºPythonµ{¦¡½X
+---åšç¢©, "Python æ©Ÿå™¨å­¸ç¿’", Sebastian Raschka", ISBN 978-986-434-140-5
+çš„Pythonç¨‹å¼ç¢¼
 
----ùÖ®p, "The C++ Programming Language", Bjarne Stroustrup, ISBN 978-986-347-603-0
-ªºC++½d¨Òµ{¦¡
+---ç¢å³°, "The C++ Programming Language", Bjarne Stroustrup, ISBN 978-986-347-603-0
+çš„C++ç¯„ä¾‹ç¨‹å¼
 
----code by ªL®Ñ½n 2017/09/26
+---code by æ—æ›¸ç·¯ 2017/09/26
 ******************************************************************************/
 #include "NLP.h"
 
-//¦ÛµM»y¨¥
+//è‡ªç„¶èªè¨€
 namespace NLP_lib
 {
 	set<string> tokenize(string text)
@@ -153,7 +153,7 @@ namespace NLP_lib
 
 	string extract_word(string& word)
 	{
-		regex word_pattern{ R"([\w'¡¦]+\.?)" };
+		regex word_pattern{ R"([\w'â€™]+\.?)" };
 		if (regex_match(word.begin(), word.end(), word_pattern))
 		{
 			fix_unicode(word);
@@ -298,7 +298,7 @@ namespace NLP_lib
 		return dot(v, w) / sqrt(dot(v, v) * dot(w, w));
 	}
 
-	//°V½m¨ç¼Æ
+	//è¨“ç·´å‡½æ•¸
 	string n_gram::generate_using_model()
 	{
 		string prev(".");
@@ -370,7 +370,7 @@ namespace NLP_lib
 				paragraph_topics.push_back(randInt());
 			}
 			documents_topics.push_back(paragraph_topics);
-			//¶¶«K­pºâ¨C²Õ¤å³¹ Unique ³æµü¼Æ
+			//é †ä¾¿è¨ˆç®—æ¯çµ„æ–‡ç«  Unique å–®è©æ•¸
 			W.push_back(NLP_lib::distict_word_count(documents[j]));
 		}
 		return documents_topics;
@@ -394,7 +394,7 @@ namespace NLP_lib
 
 	void K_topic_given_document::train(vector<string>& documents, int epoch)
 	{
-		vector<vector<int>> topic_of_word = init_topic_to_each_word(documents); //ÀH¾÷«ü©w¥DÃD¨ì¨C­Ó³æµü
+		vector<vector<int>> topic_of_word = init_topic_to_each_word(documents); //éš¨æ©ŸæŒ‡å®šä¸»é¡Œåˆ°æ¯å€‹å–®è©
 		vector<vector<string>> documents_word;
 
 		for (int i = 0; i < documents.size(); i++)
@@ -447,7 +447,7 @@ namespace NLP_lib
 
 	void K_topic_given_document::show_result(int n)
 	{
-		//¤À²Õµ²ªG --> Åã¥Ü«en¶µ
+		//åˆ†çµ„çµæœ --> é¡¯ç¤ºå‰né …
 		vector<vector<pair<string, int>>> topic_group;
 		for (int i = 0; i < topic_word_count.size(); i++)
 		{
@@ -464,7 +464,7 @@ namespace NLP_lib
 		{
 			for (int j = 0; j < n; j++)
 			{
-				cout << "¥DÃD " << i << " : ¶µ¥Ø-> " << topic_group[i][j].first << " ²¼¼Æ-> " << topic_group[i][j].second << "\n";
+				cout << "ä¸»é¡Œ " << i << " : é …ç›®-> " << topic_group[i][j].first << " ç¥¨æ•¸-> " << topic_group[i][j].second << "\n";
 			}
 		}
 	}
@@ -597,7 +597,7 @@ namespace NLP_lib
 		double base_rank = (1 - damping) / num_users;
 		double init_rank = 1 / num_users;
 		vector<map<int, double>> vote_table;
-		vote_table.resize(2); //§ë²¼½c(ªì©l¡Bµ²ªG)
+		vote_table.resize(2); //æŠ•ç¥¨ç®±(åˆå§‹ã€çµæœ)
 
 		for (int i = 0; i < num_users; i++)
 		{
@@ -680,15 +680,15 @@ namespace NLP_lib
 
 	vector<pair<string, double>> users_information::user_based_suggestion(int user_id, int num_interest)
 	{
-		//¨Ï¥ÎªÌ:¤À¼Æ
+		//ä½¿ç”¨è€…:åˆ†æ•¸
 		vector<pair<int, double>> similar_table = most_similar_users(user_id);
-		//¿³½ì½s¸¹:«eN­Ó³Ì°ª¤À¿³½ì
+		//èˆˆè¶£ç·¨è™Ÿ:å‰Nå€‹æœ€é«˜åˆ†èˆˆè¶£
 		deque<pair<int, double>> result;
-		//¿³½ì½s¸¹
+		//èˆˆè¶£ç·¨è™Ÿ
 		int interest_index = 0;
-		//¿³½ì½s¸¹:¿³½ì¦WºÙ
+		//èˆˆè¶£ç·¨è™Ÿ:èˆˆè¶£åç¨±
 		map<int, string> interest_table;
-		//¿³½ì¦WºÙ:¤À¼Æ
+		//èˆˆè¶£åç¨±:åˆ†æ•¸
 		vector<pair<string, double>> recommend_interest;
 		vector<double> recommend_vector;
 		recommend_vector.resize(interest_set.size(), 0);

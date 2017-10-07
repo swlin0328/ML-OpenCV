@@ -1,4 +1,4 @@
-#include <cmath>
+ï»¿#include <cmath>
 #include <vector>
 #include <numeric>
 #include <random>
@@ -39,7 +39,7 @@ using namespace Linear_Algebra;
 using namespace std::chrono;
 namespace Supervise_Learning
 {
-	//°V½m¨ç¼Æ
+	//è¨“ç·´å‡½æ•¸
 	double activation_for_logistic(double wX);
 
 	double activation_for_step_finction(double wX);
@@ -70,7 +70,7 @@ namespace Supervise_Learning
 
 	void try_make_leaf(shared_ptr<dataStructure::tree_node>& current_node, int break_point, double accuracy = 1.0);
 
-	//ºÊ·ş¦¡¾Ç²ß-¤ÀÃş¾¹¤¶­±
+	//ç›£ç£å¼å­¸ç¿’-åˆ†é¡å™¨ä»‹é¢
 	class classifier
 	{
 	private:
@@ -86,7 +86,7 @@ namespace Supervise_Learning
 		virtual ~classifier() {};
 	};
 
-	//·Pª¾¾¹
+	//æ„ŸçŸ¥å™¨
 	class perceptron : public virtual classifier
 	{
 	private:
@@ -113,7 +113,7 @@ namespace Supervise_Learning
 		perceptron(double eta = 0.0001, int epoch = 500, const function<double(double)>& actFunction = activation_for_hyperbolic) :leraning_Rate(eta), n_iter(epoch), actFn(actFunction) {}
 	};
 
-	//¯«¸gºô¸ô
+	//ç¥ç¶“ç¶²è·¯
 	class neuron_network : protected perceptron
 	{
 	private:
@@ -137,11 +137,11 @@ namespace Supervise_Learning
 		~neuron_network() { NN.~vector(); }
 	};
 
-	//KNN¼Ò«¬
+	//KNNæ¨¡å‹
 	template<typename T, typename U>
 	int knn_classify(int k, vector<T> X, vector<U> Y, vector<T> newpoint);
 
-	//°jÂk¼Ò«¬
+	//è¿´æ­¸æ¨¡å‹
 	class linear_regression : public virtual classifier
 	{
 	private:
@@ -160,7 +160,7 @@ namespace Supervise_Learning
 		void train_clear(vector<double>&, vector<double>&, int);
 	};
 
-	//¨Mµ¦¾ğ
+	//æ±ºç­–æ¨¹
 	class decision_tree_id3
 	{
 	private:
@@ -184,7 +184,7 @@ namespace Supervise_Learning
 		void train_clear();
 	};
 
-	//ÀH¾÷´ËªL
+	//éš¨æ©Ÿæ£®æ—
 	class random_forest
 	{
 	private:

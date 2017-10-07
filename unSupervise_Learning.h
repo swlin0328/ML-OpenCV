@@ -1,4 +1,4 @@
-#include <cmath>
+ï»¿#include <cmath>
 #include <vector>
 #include <numeric>
 #include <random>
@@ -38,7 +38,7 @@ using namespace Linear_Algebra;
 using namespace std::chrono;
 namespace unSupervise_Learning
 {
-	//°V½m¨ç¼Æ
+	//è¨“ç·´å‡½æ•¸
 	void sort_data_by_min_distance(const vector<vector<double>>& data, vector<vector<double>>& center_mass, vector<vector<vector<double>>>& groups, int k);
 
 	vector<vector<double>> get_values(shared_ptr<dataStructure::cluster_node>& current_node);
@@ -55,7 +55,7 @@ namespace unSupervise_Learning
 
 	vector<vector<double>> get_values(shared_ptr<dataStructure::cluster_node>& current_node);
 
-	////«DºÊ·ş¦¡¾Ç²ß
+	////éç›£ç£å¼å­¸ç¿’
 	//k_means
 	class k_means
 	{
