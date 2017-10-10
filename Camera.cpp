@@ -21,15 +21,19 @@ using namespace std;
 
 int main(void)
 {
-	///Demo_Neuron();
-	Demo_NeuralNetwork();
-	//Demo_DecisionTree();
+	//Demo_Neuron();
+	//Demo_NeuralNetwork();
 	//Demo_Ngram();
 
 	//圖像計算，約跑3~5分鐘
 	//Demo_Kmeans();
 
+	//Demo_DecisionTree();
 	//Demo_random_forest();
+	//Demo_KNN();
+	//Demo_users_internet();
+	//Demo_interest_topics();
+
 	system("pause");
 	return 0;
 }

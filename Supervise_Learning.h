@@ -70,6 +70,8 @@ namespace Supervise_Learning
 
 	void try_make_leaf(shared_ptr<dataStructure::tree_node>& current_node, int break_point, double accuracy = 1.0);
 
+	double majority_vote(vector<pair<double, double>> labels);
+
 	//監督式學習-分類器介面
 	class classifier
 	{
@@ -138,8 +140,19 @@ namespace Supervise_Learning
 	};
 
 	//KNN模型
-	template<typename T, typename U>
-	int knn_classify(int k, vector<T> X, vector<U> Y, vector<T> newpoint);
+	class KNN
+	{
+	private:
+		int K;
+		vector<vector<double>> X;
+		vector<double> Y;
+
+	public:
+		int knn_classify(vector<double>& newpoint);
+		void show_validate(vector<vector<double>>& X, vector<double>& Y);
+		KNN(int k, vector<vector<double>> train_X, vector<double> train_Y) : K(k), X(train_X), Y(train_Y) {};
+		KNN() = delete;
+	};
 
 	//迴歸模型
 	class linear_regression : public virtual classifier

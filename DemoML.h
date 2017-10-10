@@ -15,3 +15,9 @@ void Demo_Ngram();
 void Demo_Kmeans();
 
 void Demo_random_forest();
+
+void Demo_KNN();
+
+void Demo_users_internet();
+
+void Demo_interest_topics();

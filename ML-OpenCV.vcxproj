@@ -130,6 +130,7 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="cvlib.cpp" />
     <ClCompile Include="dataManipulate.cpp" />
+    <ClCompile Include="dataStructure.cpp" />
     <ClCompile Include="DemoML.cpp" />
     <ClCompile Include="Linear_Algebra.cpp" />
     <ClCompile Include="NLP.cpp" />

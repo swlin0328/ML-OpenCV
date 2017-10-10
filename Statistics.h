@@ -76,11 +76,9 @@ namespace Statistics
 	};
 
 	//數值統計
-	template<typename T>
-	vector<T> unique_labels(vector<T> labels);
+	vector<pair<double, double>> unique_labels(vector<pair<double, double>> labels);
 
-	template<typename T>
-	pair<T, bool> most_frequent_in_group(vector<T> labels);
+	pair<pair<double, double>, bool> most_frequent_in_group(vector<pair<double, double>>& labels);
 
 	template<typename T>
 	pair<int, T> maxValue(const vector<T>& v);
@@ -122,6 +120,8 @@ namespace Statistics
 
 	void makePair(vector<map<string, string>>& v, vector<string>& w, vector<pair<map<string, string>, string>> & result);
 	
+	void makePair(vector<double>& v, vector<double>& w, vector<pair<double, double>>& result);
+
 	template<typename T, typename U>
 	pair<T, U> makePair(T& v, U& w);
 

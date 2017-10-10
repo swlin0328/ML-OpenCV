@@ -20,39 +20,51 @@ using namespace Linear_Algebra;
 
 namespace Statistics
 {
-	template<typename T>
-	vector<T> unique_labels(vector<T> labels)
+	vector<pair<double, double>> unique_labels(vector<pair<double, double>> labels)
 	{
 		for (int i = 0; i < labels.size(); i++)
 		{
-			labels /= abs(labels);
+			labels[i].second = round(labels[i].second);
 		}
-		sort(labels.begin(), labels.end());
-		unique(labels.begin(), labels.end());
+
+		sort(labels.begin(), labels.end(), 
+			[](pair<double, double>& lab1, pair<double, double>& lab2) {return lab1.second < lab2.second; });
+		auto redundant = unique(labels.begin(), labels.end(), 
+			[](pair<double, double>& lab1, pair<double, double>& lab2) {return lab1.second == lab2.second; });
+
+		labels.erase(redundant, labels.end());
 		return labels;
 	}
 
-	template<typename T>
-	pair<T, bool> most_frequent_in_group(vector<T> labels)
+	pair<pair<double, double>, bool> most_frequent_in_group(vector<pair<double, double>>& labels)
 	{
-		vector<T> clone_group = labels;
-		vector<T> unique_group = unique_group(labels);
-		vector<int> count_group;
+		vector<pair<double, double>> clone_group = labels;
+		vector<pair<double, double>> uni_group = unique_labels(labels);
+		vector<int> each_group_frequency;
 
-		for (int i = 0; i < unique_group.size(), i++)
+		for (int i = 0; i < uni_group.size(); i++)
 		{
-			int frequency = count(clone_group.begin(), clone_group.end(), unique_group[i]);
-			count_group.push_back(frequency);
+			int frequency = 0;
+			for (int j = 0; j < clone_group.size(); j++)
+			{
+				if (uni_group[i].second == clone_group[j].second)
+				{
+					frequency++;
+				}
+			}
+			each_group_frequency.push_back(frequency);
 		}
-		pair<int, double> find_most_frequent = maxValue(count_group);
-		sort(count_group.begin(), count_group.end());
-		if (count_group[0] != count_group[1])
+		pair<int, double> find_most_frequent = maxValue(each_group_frequency);
+		sort(each_group_frequency.begin(), each_group_frequency.end(), std::greater<int>());
+
+		pair<pair<double, double>, bool> result;
+		if (each_group_frequency.size() > 1 && each_group_frequency[0] == each_group_frequency[1])
 		{
-			pair<T, bool> result{ unique_group[find_most_frequent.first], true };
+			result = pair<pair<double, double>, bool>{ uni_group[find_most_frequent.first], false };
 		}
 		else
 		{
-			pair<T, bool> result{ unique_group[find_most_frequent.first], false };
+			result = pair<pair<double, double>, bool>{ uni_group[find_most_frequent.first], true };
 		}
 		return result;
 	}
@@ -256,6 +268,15 @@ namespace Statistics
 		}
 	}
 
+	void makePair(vector<double>& v, vector<double>& w, vector<pair<double, double>>& result)
+	{
+		vector_length_queal(v, w);
+		for (int i = 0; i < v.size(); i++)
+		{
+			result.push_back(pair<double, double>{v[i], w[i]});
+		}
+	}
+	
 	void makePair(vector<vector<double>>& v, vector<vector<double>>& w, vector<pair<vector<double>, vector<double>>> & result)
 	{
 		vector_length_queal(v, w);
@@ -720,13 +741,13 @@ namespace Statistics
 		for (int i = 0; i < source.size(); i++)
 		{
 			deque<pair<int, double>> temp_queue;
-
 			if (result.size() > N)
 			{
-				while (source[i] >= result[result.size() - 1].second)
+				while (result.size() > 0 && source[i] >= result[result.size() - 1].second)
 				{
 					auto end_interest = result.back();
 					temp_queue.push_back(end_interest);
+					result.pop_back();
 				}
 				result.push_back(pair<int, double>(i, source[i]));
 
@@ -738,20 +759,18 @@ namespace Statistics
 			}
 			else
 			{
-				if (result.size() > 0)
+				while (result.size() > 0 && source[i] >= result[result.size() - 1].second)
 				{
-					while (source[i] >= result[result.size() - 1].second && result.size() > 0)
-					{
-						auto end_interest = result.back();
-						temp_queue.push_back(end_interest);
-					}
-					result.push_back(pair<int, double>(i, source[i]));
+					auto end_interest = result.back();
+					temp_queue.push_back(end_interest);
+					result.pop_back();
+				}
+				result.push_back(pair<int, double>(i, source[i]));
 
-					while (result.size() <= N)
-					{
-						result.push_back(temp_queue.back());
-						temp_queue.pop_back();
-					}
+				while (temp_queue.size() > 0 && result.size() <= N)
+				{
+					result.push_back(temp_queue.back());
+					temp_queue.pop_back();
 				}
 			}
 		}

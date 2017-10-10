@@ -74,8 +74,6 @@ namespace NLP_lib
 
 	bool is_same_path(vector<int>& path1, vector<int>& path2);
 
-	void add_path_if_new_and_smaller(vector<int>& new_path_to_user, vector<vector<int>>& old_paths_to_user, vector<vector<int>>& result_paths_to_user, int min_path_length);
-
 	double cosine_similarity(vector<int>& v, vector<int>& w);
 
 	//NLP分類器
@@ -138,7 +136,11 @@ namespace NLP_lib
 		int choose_new_topic(int document_index, string& word);
 
 	public:
-		K_topic_given_document(int n = 5) : K(n) {}
+		K_topic_given_document(int n = 5) : K(n) 
+		{
+			topic_words_count.resize(K, 0);
+			topic_word_count.resize(K);
+		}
 		K_topic_given_document() = delete;
 		void K_topic_given_document::train(vector<string>& documents, int epoch = 2000);
 		void show_result(int n = 2);
@@ -153,15 +155,23 @@ namespace NLP_lib
 		set<string> interest_set;
 
 		vector<int> make_user_interest_vector(int user_id);
+		void shortest_paths_from(shared_ptr<dataStructure::user_information> from_user);
+		bool add_path_and_node_if_new_path(vector<int>& new_path_to_user, vector<vector<int>>& old_paths_to_user, vector<vector<int>>& result_paths_to_user, int min_path_length, queue<pair<shared_ptr<dataStructure::user_information>, shared_ptr<dataStructure::user_information>>>& frontier);
+		void users_information::add_node_to_queue(int user_id, vector<vector<int>>& result_paths_to_user, queue<pair<shared_ptr<dataStructure::user_information>, shared_ptr<dataStructure::user_information>>>& frontier);
+		void show_centrality();
+		void show_page_rank();
 
 	public:
+		users_information() {};
+		users_information(string path);
 		void create_user(string& name, vector<string>& interests);
-		void betweenness_centrality();
-		void shortest_paths_from(shared_ptr<dataStructure::user_information> from_user);
 		void add_friend(int user_id, int friend_id);
 		void endorse_user(int source_id, int target_id);
+
+		double user_similarity(int user_id1, int user_id2);
+		void betweenness_centrality();
 		void page_rank(double damping = 0.85, int n_iters = 100);
-		double users_information::user_similarity(int user_id1, int user_id2);
+		void show_training_result();
 		vector<pair<int, double>> most_similar_users(int user_id);
 		vector<pair<string, double>> user_based_suggestion(int user_id, int num_interest = 5);
 	};

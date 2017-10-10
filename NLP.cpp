@@ -169,7 +169,7 @@ namespace NLP_lib
 		vector<string> words;
 		map<string, vector<string>> word_pair;
 
-		while (word_separate >> word_candidate && word_separate.peek() != EOF)
+		while (word_separate.peek() != EOF && word_separate >> word_candidate)
 		{
 			word_candidate = extract_word(word_candidate);
 			if (word_candidate != "")
@@ -210,13 +210,13 @@ namespace NLP_lib
 	{
 		istringstream iData{ text };
 		string line, word;
-		regex word_pattern{ "[a-z0-9A-Z]+ .?" };
+		regex word_pattern{ R"([\w'’_]+\.?)" };
 		int count = 0;
 
-		while (getline(iData, line) && iData.peek() != EOF)
+		while (iData.peek() != EOF && getline(iData, line))
 		{
 			istringstream is{ line };
-			while (is >> word && is.peek() != EOF)
+			while (is.peek() != EOF && is >> word)
 			{
 				if (regex_match(word.begin(), word.end(), word_pattern))
 				{
@@ -235,12 +235,10 @@ namespace NLP_lib
 
 	bool check_friend_in_paths(shared_ptr<dataStructure::user_information> user_friend, vector<vector<int>>& result_paths_to_user)
 	{
-		vector<int>::iterator check;
 		bool in_path = false;
-
 		for (int i = 0; i < result_paths_to_user.size(); i++)
 		{
-			check = find(result_paths_to_user[i].begin(), result_paths_to_user[i].end(), user_friend->user_id);
+			auto check = find(result_paths_to_user[i].begin(), result_paths_to_user[i].end(), user_friend->user_id);
 			if (check != result_paths_to_user[i].end())
 			{
 				in_path = true;
@@ -277,11 +275,11 @@ namespace NLP_lib
 		return true;
 	}
 
-	void add_path_if_new_and_smaller(vector<int>& new_path_to_user, vector<vector<int>>& old_paths_to_user, vector<vector<int>>& result_paths_to_user, int min_path_length)
+	bool users_information::add_path_and_node_if_new_path(vector<int>& new_path_to_user, vector<vector<int>>& old_paths_to_user, vector<vector<int>>& result_paths_to_user, int min_path_length, queue<pair<shared_ptr<dataStructure::user_information>, shared_ptr<dataStructure::user_information>>>& frontier)
 	{
+		bool is_old_path = false;
 		if (new_path_to_user.size() <= min_path_length)
 		{
-			bool is_old_path = false;
 			for (int j = 0; j < old_paths_to_user.size(); j++)
 			{
 				is_old_path = is_same_path(new_path_to_user, old_paths_to_user[j]);
@@ -289,10 +287,25 @@ namespace NLP_lib
 			if (!is_old_path)
 			{
 				result_paths_to_user.push_back(new_path_to_user);
+				add_node_to_queue(new_path_to_user.back(), result_paths_to_user, frontier);
+			}
+		}
+		bool is_added = !is_old_path;
+		return is_added;
+	}
+
+	void users_information::add_node_to_queue(int user_id, vector<vector<int>>& result_paths_to_user, queue<pair<shared_ptr<dataStructure::user_information>, shared_ptr<dataStructure::user_information>>>& frontier)
+	{
+		auto user = user_table[user_id];
+		for (auto iter = user->friendship.begin(); iter != user->friendship.end(); iter++)
+		{
+			bool is_friend_in_path = NLP_lib::check_friend_in_paths(*iter, result_paths_to_user);
+			if (!is_friend_in_path && (*iter)->user_id)
+			{
+				frontier.push(pair<shared_ptr<dataStructure::user_information>, shared_ptr<dataStructure::user_information>>(user, *iter));
 			}
 		}
 	}
-
 	double cosine_similarity(vector<int>& v, vector<int>& w)
 	{
 		return dot(v, w) / sqrt(dot(v, v) * dot(w, w));
@@ -402,8 +415,8 @@ namespace NLP_lib
 			dataManipulate::to_lower(documents[i]);
 			istringstream iData{ documents[i] };
 			vector<string> paragraph_word;
-			regex word_pattern{ "[a-z0-9A-Z]+ .?" };
-			string word;
+			regex word_pattern{ R"([\w'’_]+\.?)" };
+			string word, word_candidate;
 			vector<int> topic_count;
 			topic_count.resize(K, 0);
 
@@ -413,12 +426,22 @@ namespace NLP_lib
 				topic_count[topic_index]++;
 				topic_words_count[topic_index]++;
 
-				while (!regex_match(word.begin(), word.end(), word_pattern) && iData.peek() != EOF)
+				while (iData.peek() != EOF && iData >> word_candidate)
 				{
-					iData >> word;
+					if (regex_match(word_candidate.begin(), word_candidate.end(), word_pattern))
+					{
+						word = word_candidate;
+						paragraph_word.push_back(word);
+						if (topic_word_count[topic_index].find(word) != topic_word_count[topic_index].end())
+						{
+							topic_word_count[topic_index][word]++;
+						}
+						else
+						{
+							topic_word_count[topic_index][word] = 1;
+						}
+					}
 				}
-				paragraph_word.push_back(word);
-				topic_word_count[topic_index][word]++;
 			}
 			documents_word.push_back(paragraph_word);
 			document_topic_count.push_back(topic_count);
@@ -462,10 +485,12 @@ namespace NLP_lib
 		}
 		for (int i = 0; i < topic_group.size(); i++)
 		{
+			cout << "主題 " << i << " 相似成員 : \n";
 			for (int j = 0; j < n; j++)
 			{
-				cout << "主題 " << i << " : 項目-> " << topic_group[i][j].first << " 票數-> " << topic_group[i][j].second << "\n";
+				cout << topic_group[i][j].first << " \n";
 			}
+			cout << "\n";
 		}
 	}
 
@@ -476,10 +501,8 @@ namespace NLP_lib
 			dataManipulate::to_lower(interest[i]);
 			interest_set.insert(interest[i]);
 		}
-
-		dataStructure::user_information user(name, interest);
-		shared_ptr<dataStructure::user_information> user_ptr{ &user };
-		user_table[user.user_id] = user_ptr;
+		shared_ptr<dataStructure::user_information> user_ptr{ new dataStructure::user_information(name, interest) };
+		user_table[user_ptr->user_id] = user_ptr;
 		users.push_back(user_ptr);
 	}
 
@@ -507,15 +530,19 @@ namespace NLP_lib
 
 		for (int i = 0; i < users.size(); i++)
 		{
-			int source_id = users[i]->user_id;
+			shortest_paths_from(users[i]);
+		}
 
+		for (int i = 0; i < users.size(); i++)
+		{
+			int source_id = users[i]->user_id;
 			for (auto iter = users[i]->shortest_paths_to.begin(); iter != users[i]->shortest_paths_to.end(); iter++)
 			{
 				int target_id = iter->first;
 				if (source_id < target_id)
 				{
 					int num_paths = iter->second.size();
-					double contrib = 1 / num_paths;
+					double contrib = 1.0 / num_paths;
 					for (int j = 0; j < iter->second.size(); j++)
 					{
 						for (int k = 0; k < iter->second[j].size(); k++)
@@ -532,20 +559,47 @@ namespace NLP_lib
 		}
 	}
 
+	void users_information::show_centrality()
+	{
+		for (int i = 0; i < users.size(); i++)
+		{
+			cout << "The centrality of member (id: " << users[i]->user_id << ", name: " << users[i]->user_name << ") is "
+				<< users[i]->betweenness_centrality << "\n";
+		}
+		cout << "\n";
+	}
+
+	void users_information::show_page_rank()
+	{
+		for (int i = 0; i < users.size(); i++)
+		{
+			cout << "The page_rank of member (id: " << users[i]->user_id << ", name: " << users[i]->user_name << ") is "
+				<< users[i]->page_rank << "\n";
+		}
+		cout << "\n";
+	}
+
+	void users_information::show_training_result()
+	{
+		show_page_rank();
+		show_centrality();
+	}
+
 	void users_information::shortest_paths_from(shared_ptr<dataStructure::user_information> from_user)
 	{
 		queue<pair<shared_ptr<dataStructure::user_information>, shared_ptr<dataStructure::user_information>>> frontier;
 		map<int, vector<vector<int>>> shortest_paths_to;
+		shortest_paths_to[from_user->user_id].push_back(vector<int>{ from_user->user_id });
 
 		NLP_lib::init_start_point(frontier, from_user);
 		while (!frontier.empty())
 		{
-			pair<shared_ptr<dataStructure::user_information>, shared_ptr<dataStructure::user_information>> friendship;
 			shared_ptr<dataStructure::user_information> prev_user = frontier.front().first;
 			shared_ptr<dataStructure::user_information> user = frontier.front().second;
 			frontier.pop();
 
-			int min_path_length;
+			int min_path_length = numeric_limits<int>::max();
+			bool is_new_node = false;
 			vector<vector<int>> paths_to_prev_user = shortest_paths_to[prev_user->user_id];
 			vector<vector<int>> old_paths_to_user, new_paths_to_user, result_paths_to_user;
 			for (int i = 0; i < paths_to_prev_user.size(); i++)
@@ -567,23 +621,10 @@ namespace NLP_lib
 				}
 				min_path_length = Statistics::minValue(path_length).second;
 			}
-			else
-			{
-				min_path_length = numeric_limits<int>::max();
-			}
 
 			for (int i = 0; i < new_paths_to_user.size(); i++)
 			{
-				NLP_lib::add_path_if_new_and_smaller(new_paths_to_user[i], old_paths_to_user, result_paths_to_user, min_path_length);
-			}
-
-			for (auto iter = user->friendship.begin(); iter != user->friendship.end(); iter++)
-			{
-				bool is_friend_in_path = NLP_lib::check_friend_in_paths(*iter, result_paths_to_user);
-				if (!is_friend_in_path)
-				{
-					frontier.push(pair<shared_ptr<dataStructure::user_information>, shared_ptr<dataStructure::user_information>>(user, *iter));
-				}
+				users_information::add_path_and_node_if_new_path(new_paths_to_user[i], old_paths_to_user, result_paths_to_user, min_path_length, frontier);
 			}
 			shortest_paths_to[user->user_id] = result_paths_to_user;
 		}
@@ -594,8 +635,8 @@ namespace NLP_lib
 	{
 		int num_users = users.size();
 		int round;
-		double base_rank = (1 - damping) / num_users;
-		double init_rank = 1 / num_users;
+		double base_rank = (1.0 - damping) / num_users;
+		double init_rank = 1.0 / num_users;
 		vector<map<int, double>> vote_table;
 		vote_table.resize(2); //投票箱(初始、結果)
 
@@ -611,10 +652,18 @@ namespace NLP_lib
 			round = i % 2;
 			for (int j = 0; j < num_users; j++)
 			{
-				double link_rank = vote_table[round][users[j]->user_id] / users[j]->endorses.size();
-				for (int k = 0; k < users[j]->endorses.size(); k++)
+				double link_rank;
+				if (users[j]->endorses.size() != 0)
 				{
-					vote_table[1 - round][users[j]->endorses[k]] += link_rank;
+					link_rank = vote_table[round][users[j]->user_id] / users[j]->endorses.size();
+					for (int k = 0; k < users[j]->endorses.size(); k++)
+					{
+						vote_table[1 - round][users[j]->endorses[k]] += link_rank;
+					}
+				}
+				else
+				{
+					vote_table[1 - round][users[j]->user_id] += vote_table[round][users[j]->user_id];
 				}
 				vote_table[round][users[j]->user_id] = 0;
 			}
@@ -624,7 +673,7 @@ namespace NLP_lib
 		{
 			int user_id = (*iter).first;
 			double score = (*iter).second;
-			users[user_id]->page_rank += score;
+			users[user_id-1]->page_rank += score;
 		}
 	}
 
@@ -653,15 +702,16 @@ namespace NLP_lib
 	{
 		vector<int> interest_vector1 = make_user_interest_vector(user_id1);
 		vector<int> interest_vector2 = make_user_interest_vector(user_id2);
+		double similarity = NLP_lib::cosine_similarity(interest_vector1, interest_vector2);
 
-		return NLP_lib::cosine_similarity(interest_vector1, interest_vector2);
+		cout << "The similarity between user_id (" << user_id1 << ", " << user_id2 << ") is: " << similarity << "\n";
+		return similarity;
 	}
 
 	vector<pair<int, double>> users_information::most_similar_users(int user_id)
 	{
 		vector<pair<int, double>> similar_table;
 		double similarity;
-
 		for (int i = 0; i < users.size(); i++)
 		{
 			if (users[i]->user_id != user_id)
@@ -695,8 +745,7 @@ namespace NLP_lib
 
 		for (int i = 0; i < similar_table.size(); i++)
 		{
-			vector<int> interest_vector;
-			make_user_interest_vector(similar_table[i].first);
+			vector<int> interest_vector = make_user_interest_vector(similar_table[i].first);
 
 			for (int j = 0; j < recommend_vector.size(); j++)
 			{
@@ -709,12 +758,14 @@ namespace NLP_lib
 		{
 			interest_table[interest_index++] = *iter;
 		}
-
+		cout << "\n";
 		for (int i = 0; i < num_interest; i++)
 		{
 			string interested_name = interest_table[result.at(i).first];
 			double score = result.at(i).second;
 			recommend_interest.push_back(pair<string, double>(interested_name, score));
+			cout << "The recommend interests(recommend, score) to member " << user_id << " is:\n";
+			cout << "(" << recommend_interest[i].first << ", " << recommend_interest[i].second << ")\n";
 		}
 		return recommend_interest;
 	}
@@ -748,5 +799,30 @@ namespace NLP_lib
 			spam_probs.push_back(NLP_lib::spam_probability(word_probs, X[i]));
 		}
 		return spam_probs;
+	}
+
+	users_information::users_information(string path) 
+	{
+		vector<vector<string>> users_data;
+		dataManipulate::load_users_information(path, users_data);
+
+		sort(users_data.begin(), users_data.end(), [](vector<string>& user1, vector<string>& user2)
+		{return dataManipulate::to_int(user1[0]) < dataManipulate::to_int(user2[0]); });
+
+		for (int i = 0; i < users_data.size(); i++)
+		{
+			vector<string> interests = dataManipulate::string_partition(users_data[i][3], ',');
+			this->create_user(users_data[i][1], interests);
+		}
+
+		for (int i = 0; i < users_data.size(); i++)
+		{
+			vector<string> friendships = dataManipulate::string_partition(users_data[i][2], ',');
+			for (int j = 0; j < friendships.size(); j++)
+			{
+				int friend_id = dataManipulate::to_int(friendships[j]);
+				this->add_friend(dataManipulate::to_int(users_data[i][0]), friend_id);
+			}
+		}
 	}
 }

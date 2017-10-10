@@ -42,6 +42,9 @@
     <ClCompile Include="DemoML.cpp">
       <Filter>原始程式檔</Filter>
     </ClCompile>
+    <ClCompile Include="dataStructure.cpp">
+      <Filter>原始程式檔</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Linear_Algebra.h">

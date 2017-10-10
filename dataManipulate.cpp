@@ -17,7 +17,7 @@
 
 namespace dataManipulate
 {
-	int load_Data_With_Bias(string path, vector<vector<double>>& X, vector<double>& Y, const function<double(const string&)>& encoder, string cmd, int dim)
+	int load_Data_With_Bias(string path, vector<vector<double>>& X, vector<double>& Y, const function<double(const string&)>& encoder, string cmd, int dim, int start_index)
 	{
 		ifstream iData(path, ios::in);
 		int count = 0;
@@ -29,20 +29,19 @@ namespace dataManipulate
 		{
 			dim = readString.size() - 1;
 		}
+		init_vector(X, Y, encoder, cmd, dim, readString, start_index);
 
-		init_vector(X, Y, encoder, cmd, dim, readString);
-
-		while (getline(iData, line) && iData.peek() != EOF)
+		while (iData.peek() != EOF && getline(iData, line))
 		{
 			vector<string> readData = string_partition(line, ',');
-			data2vector(readData, X, Y, encoder, cmd, 1, dim);
+			data2vector(readData, X, Y, encoder, cmd, 1, dim, start_index);
 			count++;
 		}
 		iData.close();
 		return count;
 	}
 
-	void data2vector(vector<string>& result, vector<vector<double>>& X, vector<double>& Y, const function<double(const string&)>& encoder, string cmd, int bias, int dim)
+	void data2vector(vector<string>& result, vector<vector<double>>& X, vector<double>& Y, const function<double(const string&)>& encoder, string cmd, int bias, int dim, int start_index)
 	{
 		vector<double> Xi;
 		int Xi_size = dim + bias;
@@ -51,25 +50,32 @@ namespace dataManipulate
 		X.push_back(Xi);
 		int X_size = X.size();
 
-		for (int i = 0; i < dim; i++)
+		for (int i = start_index; i < dim + start_index; i++)
 		{
 			istringstream is(result[i]);
 			double val;
 			is >> val;
-			X[X_size-1].push_back(val);
+			X[X_size - 1].push_back(val);
 		}
 
 		to_lower(cmd);
 		if (cmd != "test" )
 		{
-			Y.push_back(encoder(result[result.size() - 1]));
+			if (start_index == 0)
+			{
+				Y.push_back(encoder(result[result.size() - 1]));
+			}
+			else
+			{
+				Y.push_back(encoder(result[start_index - 1]));
+			}
 		}
 	}
 
-	void init_vector(vector<vector<double>>& X, vector<double>& Y, const function<double(const string&)>& encoder, string cmd, int dim, vector<string> result)
+	void init_vector(vector<vector<double>>& X, vector<double>& Y, const function<double(const string&)>& encoder, string cmd, int dim, vector<string> result, int start_index)
 	{
 		X[0].push_back(1.0);
-		for (int i = 0; i < dim; i++)
+		for (int i = start_index; i < dim + start_index; i++)
 		{
 			istringstream is(result[i]);
 			double val;
@@ -88,7 +94,14 @@ namespace dataManipulate
 		to_lower(cmd);
 		if (cmd != "test")
 		{
-			Y.push_back(encoder(result[result.size() - 1]));
+			if (start_index == 0)
+			{
+				Y.push_back(encoder(result[result.size() - 1]));
+			}
+			else
+			{
+				Y.push_back(encoder(result[start_index-1]));
+			}
 		}
 	}
 
@@ -202,7 +215,7 @@ namespace dataManipulate
 		}
 	}
 
-	void train_test_split(vector<vector<double> >& X, vector<double>& Y, vector<vector<double> >& X_train, vector<double>& Y_train, vector<vector<double> >& X_test, vector<double>& Y_test, double trainSize)
+	void train_test_split(vector<vector<double>>& X, vector<double>& Y, vector<vector<double> >& X_train, vector<double>& Y_train, vector<vector<double> >& X_test, vector<double>& Y_test, double trainSize)
 	{
 		Linear_Algebra::vector_length_queal(Y, X);
 		vector<pair<vector<double>, double>> X_y_combine, train, test;
@@ -215,7 +228,8 @@ namespace dataManipulate
 		{
 			X_y_combine.push_back(move(pair<vector<double>, double> {X[i], Y[i]}));
 		}
-
+		unsigned seed = (unsigned)time(NULL);
+		shuffle(X_y_combine.begin(), X_y_combine.end(), std::default_random_engine(seed));
 		split_data(X_y_combine, train, test, trainSize);
 			
 		Statistics::unPair(train, X_train, Y_train);
@@ -291,7 +305,7 @@ namespace dataManipulate
 		int count = 0;
 		string line;
 
-		while (getline(iData, line) && iData.peek() != EOF)
+		while (iData.peek() != EOF && getline(iData, line))
 		{
 			if (line == "") { continue; }
 			map<string, string> X_dict;
@@ -328,5 +342,55 @@ namespace dataManipulate
 			getline(iData, line);
 			paragraph += (line + "\n");
 		}
+	}
+
+	int load_users_information(string path, vector<vector<string>>& X)
+	{
+		ifstream iData(path, ios::in);
+		int count = 0;
+		string line;
+
+		while (iData.peek() != EOF && getline(iData, line))
+		{
+			to_lower(line);
+			vector<string> readData = string_partition(line, ':');
+			vector<string> user_data;
+			string id = string_partition(readData[1], ',')[0];
+			string name = string_partition(readData[2], ',')[0];
+			string friendships = readData[3];
+			string interests = readData[4];
+
+			auto last_doma = friendships.find_last_of(',');
+			friendships = friendships.substr(0, last_doma);
+
+			user_data.push_back(id);
+			user_data.push_back(name);
+			user_data.push_back(friendships);
+			user_data.push_back(interests);
+			X.push_back(user_data);
+
+			count++;
+		}
+		iData.close();
+		return count;
+	}
+
+
+	int to_int(string data)
+	{
+		istringstream iData(data);
+		int val;
+		iData >> val;
+
+		return val;
+	}
+
+	double to_double(string data)
+	{
+		istringstream iData(data);
+		double val;
+		iData >> val;
+
+		return val;
 	}
 }

@@ -159,15 +159,15 @@ namespace Supervise_Learning
 		}, w, X, Y);
 	}
 
-	template<typename T>
-	double majority_vote(vector<T> labels)
+	double majority_vote(vector<pair<double,double>> labels)
 	{
 		//labels 需先以距離排列處理
-		pair<T, bool> most_frequent = Statistics::most_frequent_in_group(labels);
+		pair<pair<double, double>, bool> most_frequent = Statistics::most_frequent_in_group(labels);
 
 		if (most_frequent.second == true)
 		{
-			return most_frequent.first;
+			pair<double, double> vote = most_frequent.first;
+			return vote.second;
 		}
 		else
 		{
@@ -176,8 +176,7 @@ namespace Supervise_Learning
 		}
 	}
 
-	template<typename T, typename U>
-	int knn_classify(int k, vector<T> X, vector<U> Y, vector<T> newpoint)
+	int KNN::knn_classify(vector<double>& newpoint)
 	{
 		vector<double> distance_Group;
 
@@ -185,19 +184,40 @@ namespace Supervise_Learning
 		{
 			distance_Group.push_back(Linear_Algebra::distance(X[i], newpoint));
 		}
+		vector<pair<double, double>> neighbor;
+		Statistics::makePair(distance_Group, Y, neighbor);
 
-		vector<pair<double, double>> neighbor = make_pair(distance_Group, Y);
 		sort(neighbor.begin(), neighbor.end(), [](pair<double, double>& p1, pair<double, double>& p2) {
-			return (p1.first < p2.first);)};
+			return (p1.first < p2.first); });
 
-		vector< pair<double, double> > k_nearert_lables;
-		for (int i = 0; i < k; i++)
+		vector<pair<double, double>> k_nearert_lables;
+		for (int i = 0; i < K; i++)
 		{
 			k_nearert_lables.push_back(neighbor[i]);
 		}
 		return majority_vote(k_nearert_lables);
 	}
 
+	void KNN::show_validate(vector<vector<double>>& X, vector<double>& Y)
+	{
+		vector_length_queal(Y, X);
+		int correct = 0, wrong = 0;
+		
+		for (int i = 0; i < X.size(); i++)
+		{
+			int predict = knn_classify(X[i]);
+			cout << "The classify result is : " << predict << ", the true label is : " << Y[i] << "\n";
+			if (predict == Y[i])
+			{
+				correct += 1;
+			}
+			else
+			{
+				wrong += 1;
+			}
+		}
+		cout << "\nThe " << K << " neighbors validate accuracy is : " << 100 * correct / (correct + wrong) << "%\n";
+	}
 	void linear_regression::train(vector<vector<double>>& X, vector<double>& y)
 	{
 		train_clear(cost, w, X[0].size());

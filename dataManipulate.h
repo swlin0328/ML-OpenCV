@@ -34,21 +34,23 @@ using namespace std;
 namespace dataManipulate
 {
 	//資料讀取
-	int load_Data_With_Bias(string path, vector<vector<double>>& X, vector<double>& Y, const function<double(const string&)>& encoder, string cmd, int dim = 0);
+	int load_Data_With_Bias(string path, vector<vector<double>>& X, vector<double>& Y, const function<double(const string&)>& encoder, string cmd, int dim = 0, int start_index = 0);
 
 	int load_Data_NoBias_NN(string path, vector<vector<double>>& X, vector<vector<double>>& Y, const function<double(const string&)>& encoder, string cmd, int input_dim, int output_dim);
 
 	void init_NoBias_vector(ifstream& iData, vector<vector<double>>& X, vector<vector<double>>& Y, string cmd, int input_dim, int output_dim);
 
-	void data2vector(vector<string>& result, vector<vector<double>>& X, vector<double>& Y, const function<double(const string&)>& encoder, string cmd, int bias, int dim = 0);
+	void data2vector(vector<string>& result, vector<vector<double>>& X, vector<double>& Y, const function<double(const string&)>& encoder, string cmd, int bias, int dim, int start_index);
 
-	void init_vector(vector<vector<double>>& X, vector<double>& Y, const function<double(const string&)>& encoder, string cmd, int dim, vector<string> result);
+	void init_vector(vector<vector<double>>& X, vector<double>& Y, const function<double(const string&)>& encoder, string cmd, int dim, vector<string> result, int start_index);
 	
 	void readData_for_NN(ifstream& iData, vector<double>& readData, int dim);
 
 	int readData_for_tree(string path, vector<map<string, string>>&, vector<string>&, string cmd);
 
 	void readParagraph(string path, string& paragraph);
+
+	int load_users_information(string path, vector<vector<string>>& X);
 
 	//資料處理
 	vector<string> string_partition(const string &source, char delim = '\n');
@@ -70,4 +72,8 @@ namespace dataManipulate
 	vector<pair<vector<double>, double>> bootstrap_sample(vector<vector<double>>& X, vector<double>& Y);
 
 	void to_lower(string word);
+
+	int to_int(string data);
+
+	double to_double(string data);
 }

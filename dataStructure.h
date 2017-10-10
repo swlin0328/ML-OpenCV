@@ -26,10 +26,10 @@ namespace dataStructure
 	};
 
 	//集群使用資料結構
-	static struct cluster_build_count
+	struct cluster_build_count
 	{
-		int count = 0;
-		int leaf_created = 0;
+		static int count;
+		static int leaf_created;
 	};
 
 	struct cluster_node
@@ -68,9 +68,9 @@ namespace dataStructure
 	};
 
 	//使用者網路資料結構
-	static struct user_build_count
+	struct user_build_count
 	{
-		int user_created = 0;
+		static int user_created;
 	};
 
 	struct user_information
