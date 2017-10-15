@@ -110,26 +110,22 @@ namespace unSupervise_Learning
 		}
 
 		int pred_cluster = Statistics::minValue(distance).first;
-		//cout << "This data is belonging to the cluster :" << pred_cluster << " \n";
 		return pred_cluster;
 	};
 
-	double cluster_distance(shared_ptr<dataStructure::cluster_node>& cluster_node1, shared_ptr<dataStructure::cluster_node>& cluster_node2, vector<vector<double>> distance_table, const function<pair<int, double>(vector<double>&)>& distance_F)
+	double bottom_up_cluster::cluster_distance(shared_ptr<dataStructure::cluster_node>& cluster_node1, shared_ptr<dataStructure::cluster_node>& cluster_node2, vector<vector<double>>& distance_table, const function<pair<int, double>(const vector<double>&)>& distance_F)
 	{
 		vector<double> distances;
-		for (int j = 0; j < cluster_node1->child_nodes.size(); j++)
+		double find_distance_between_clusters;
+		vector<shared_ptr<dataStructure::cluster_node>> subcluster1, subcluster2;
+		search_subnode_by_DFS(cluster_node1, subcluster1);
+		search_subnode_by_DFS(cluster_node2, subcluster2);
+
+		for (int i = 0; i < subcluster1.size(); i++)
 		{
-			for (int i = 0; i < cluster_node2->child_nodes.size(); i++)
+			for (int j = 0; j < subcluster2.size(); j++)
 			{
-				double find_distance_between_clusters = 0;
-				if (distance_table[cluster_node1->child_nodes[j]->label][cluster_node2->child_nodes[j]->label])
-				{
-					find_distance_between_clusters = distance_table[cluster_node1->child_nodes[j]->label][cluster_node2->child_nodes[i]->label];
-				}
-				else
-				{
-					find_distance_between_clusters = distance_table[cluster_node2->child_nodes[i]->label][cluster_node1->child_nodes[j]->label];
-				}
+				find_distance_between_clusters = distance_table[(subcluster1[i]->label) - 1][(subcluster2[j]->label) - 1];
 				distances.push_back(find_distance_between_clusters);
 			}
 		}
@@ -141,7 +137,6 @@ namespace unSupervise_Learning
 		for (int i = 0; i < data.size(); i++)
 		{
 			shared_ptr<dataStructure::cluster_node> leaf_node{ new dataStructure::cluster_node(data[i]) };
-			leaf_node->child_nodes.push_back(leaf_node);
 			leaf_set.push_back(leaf_node);
 		}
 	}
@@ -150,64 +145,96 @@ namespace unSupervise_Learning
 	{
 		for (int i = 0; i < leaf_set.size(); i++)
 		{
-			vector<double> distance_between_clusters;
-			distance_between_clusters.resize(leaf_set.size(), 0);
-
-			for (int j = i + 1; j < leaf_set.size(); j++)
+			vector<double> distance_between_clusters(leaf_set.size(), numeric_limits<double>::max());
+			for (int j = 0; j < leaf_set.size(); j++)
 			{
-				distance_between_clusters.push_back(Linear_Algebra::distance(leaf_set[i]->data, leaf_set[j]->data));
+				if (i != j)
+				{
+					distance_between_clusters[j] = Linear_Algebra::distance(leaf_set[i]->data, leaf_set[j]->data);
+				}
 			}
 			distance_table.push_back(distance_between_clusters);
 		}
 	}
 
-	void assemble_cluster(vector<shared_ptr<dataStructure::cluster_node>>& leaf_set, vector<vector<double>>& distance_table, const function<pair<int, double>(vector<double>&)>& distance_F)
+	void bottom_up_cluster::assemble_cluster(vector<shared_ptr<dataStructure::cluster_node>>& leaf_set, vector<vector<double>>& distance_table, string method)
 	{
 		while (leaf_set.size() > 1)
 		{
-			vector<double> disance;
+			vector<double> distance;
 			for (int i = 0; i < leaf_set.size(); i++)
 			{
-				for (int j = i + 1; j < leaf_set.size(); j++)
+				for (int j = 0; j < leaf_set.size(); j++)
 				{
-					double distance = cluster_distance(leaf_set[i], leaf_set[j], distance_table, distance_F);
-					disance.push_back(distance);
+					double point_distance = numeric_limits<double>::max();
+					if (i != j)
+					{
+						point_distance = cluster_distance(leaf_set[i], leaf_set[j], distance_table, distance_F);
+					}
+					distance.push_back(point_distance);
 				}
 			}
-			int distance_index = distance_F(disance).first;
+			int distance_index = Statistics::minValue<double>(distance).first;
 
 			for (int i = 0; i < leaf_set.size(); i++)
 			{
-				for (int j = i; j < leaf_set.size(); j++)
+				bool is_clusterd = false;
+				for (int j = 0; j < leaf_set.size(); j++)
 				{
-					if (i + j == distance_index)
+					if ( i * leaf_set.size() + j == distance_index )
 					{
 						shared_ptr<dataStructure::cluster_node> leaf_node{ new dataStructure::cluster_node(leaf_set[i], leaf_set[j]) };
-						leaf_node->is_leaf = false;
-						leaf_node->order = leaf_node->get_num_build_node();
 
-						swap(leaf_set.back(), leaf_set[i]);
-						leaf_set.pop_back();
+						leaf_node->order = leaf_node->get_num_build_node();
 
 						swap(leaf_set.back(), leaf_set[j]);
 						leaf_set.pop_back();
 
+						swap(leaf_set.back(), leaf_set[i]);
+						leaf_set.pop_back();
+
 						leaf_set.push_back(leaf_node);
+						is_clusterd = true;
+						break;
 					}
 				}
+				if(is_clusterd) { break; }
 			}
+			cout << "already classified to " << leaf_set.size() << " clusters\n";
 		}
 	}
 
-	void bottom_up_cluster::bottom_up(vector<vector<double>>& data, const function<pair<int, double>(vector<double>&)>& distance_F)
+	void bottom_up_cluster::search_subnode_by_DFS(shared_ptr<dataStructure::cluster_node> current_node, vector<shared_ptr<dataStructure::cluster_node>>& leaf_set)
 	{
+		if (current_node->is_leaf)
+		{
+			leaf_set.push_back(current_node);
+			return;
+		}
+
+		for (int i = 0; i < current_node->child_nodes.size(); i++)
+		{
+			search_subnode_by_DFS(current_node->child_nodes[i], leaf_set);
+		}
+	}
+
+	void bottom_up_cluster::bottom_up(vector<vector<double>>& data, string method)
+	{
+		dataManipulate::to_lower(method);
+		if (method == "max")
+		{
+			distance_F = Statistics::maxValue<double>;
+		}
+		else
+		{
+			distance_F = Statistics::minValue<double>;
+		}
+
 		vector<shared_ptr<dataStructure::cluster_node>> leaf_set;
 		init_leaf_cluster(data, leaf_set);
-
 		vector<vector<double>> distance_table;
 		init_distance_table(leaf_set, distance_table);
-
-		assemble_cluster(leaf_set, distance_table, distance_F);
+		assemble_cluster(leaf_set, distance_table, method);
 		root_node = leaf_set.front();
 	};
 
@@ -228,20 +255,45 @@ namespace unSupervise_Learning
 			{
 				num_of_order.push_back(get_build_order(cluster_set[i]));
 			}
-			int min_index = Statistics::minValue(num_of_order).first;
+			int min_index = Statistics::minValue<int>(num_of_order).first;
 
 			shared_ptr<dataStructure::cluster_node> sub_cluster = cluster_set[min_index];
-			swap(cluster_set.back(), cluster_set[min_index]);
-			cluster_set.pop_back();
 
 			for (int i = 0; i < sub_cluster->child_nodes.size(); i++)
 			{
 				cluster_set.push_back(sub_cluster->child_nodes[i]);
 			}
+			swap(cluster_set.back(), cluster_set[min_index]);
+			cluster_set.pop_back();
 		}
-
 		return cluster_set;
 	};
+
+	void bottom_up_cluster::predict(int num_cluster, vector<vector<double>>& data)
+	{
+		auto clusters_set = generate_cluster(num_cluster);
+
+		for (int i = 0; i < data.size(); i++)
+		{
+			vector<double> distance_to_cluster;
+			for (int j = 0; j < clusters_set.size(); j++)
+			{
+				vector<double> distance_to_each_points;
+				vector<shared_ptr<dataStructure::cluster_node>> subnode;
+				search_subnode_by_DFS(clusters_set[j], subnode);
+
+				for (int m = 0; m < subnode.size(); m++)
+				{
+					double distance = Linear_Algebra::distance(subnode[m]->data, data[i]);
+					distance_to_each_points.push_back(distance);
+				}
+				double result = distance_F(distance_to_each_points).second;
+				distance_to_cluster.push_back(result);
+			}
+			int cluster_index = Statistics::minValue<double>(distance_to_cluster).first;
+			cout << "The data point " << i << " is belonging to the cluster : " << cluster_index << "\n";
+		}
+	}
 
 	vector<shared_ptr<dataStructure::cluster_node>> get_children(shared_ptr<dataStructure::cluster_node>& current_node)
 	{

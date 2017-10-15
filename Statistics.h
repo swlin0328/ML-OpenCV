@@ -83,16 +83,20 @@ namespace Statistics
 	template<typename T>
 	pair<int, T> maxValue(const vector<T>& v);
 
+	template<>
 	pair<int, int> maxValue(const vector<int>& v);
 
-	pair<int, double> maxValue(vector<double>& v);
+	template<>
+	pair<int, double> maxValue(const vector<double>& v);
 
 	template<typename T>
 	pair<int, T> minValue(const vector<T>& v);
 
-	pair<int, double> minValue(vector<double>& v);
+	template<>
+	pair<int, double> minValue(const vector<double>& v);
 
-	pair<int, int> minValue(vector<int>& v);
+	template<>
+	pair<int, int> minValue(const vector<int>& v);
 
 	double sum(const vector<double>& v);
 

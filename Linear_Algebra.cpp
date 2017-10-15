@@ -50,6 +50,11 @@ namespace Linear_Algebra
 		assert(v.size() == w.size());
 	}
 
+	void vector_length_queal(vector<string>& v, vector<bool> & w)
+	{
+		assert(v.size() == w.size());
+	}
+
 	void vector_length_security(const vector<double>& v, const vector<double>& w)
 	{
 		assert(v.capacity() >= w.size());

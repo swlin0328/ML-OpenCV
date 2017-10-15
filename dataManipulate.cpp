@@ -215,6 +215,22 @@ namespace dataManipulate
 		}
 	}
 
+	void split_data(vector< pair<string, bool> >& data, vector<pair<string, bool>>& train, vector<pair<string, bool>>& test, double trainSize)
+	{
+		Statistics::Rand_uniform_double ranDouble(0, 1);
+		for (int i = 0; i < data.size(); i++)
+		{
+			if (ranDouble() < trainSize)
+			{
+				train.push_back(data[i]);
+			}
+			else
+			{
+				test.push_back(data[i]);
+			}
+		}
+	}
+
 	void train_test_split(vector<vector<double>>& X, vector<double>& Y, vector<vector<double> >& X_train, vector<double>& Y_train, vector<vector<double> >& X_test, vector<double>& Y_test, double trainSize)
 	{
 		Linear_Algebra::vector_length_queal(Y, X);
@@ -248,6 +264,26 @@ namespace dataManipulate
 		for (int i = 0; i < X.size(); i++)
 		{
 			X_y_combine.push_back(move(pair<map<string, string>, string> {X[i], Y[i]}));
+		}
+
+		split_data(X_y_combine, train, test, trainSize);
+
+		Statistics::unPair(train, X_train, Y_train);
+		Statistics::unPair(test, X_test, Y_test);
+	}
+
+	void train_test_split(vector<string>& X, vector<bool>& Y, vector<string>& X_train, vector<bool>& Y_train, vector<string>& X_test, vector<bool>& Y_test, double trainSize)
+	{
+		Linear_Algebra::vector_length_queal(X, Y);
+		vector<pair<string, bool>> X_y_combine, train, test;
+		double safty_factor = 1.2;
+
+		X_train.reserve(X.size() * safty_factor * trainSize), X_test.reserve(X.size() * (safty_factor - trainSize));
+		Y_train.reserve(Y.size() * safty_factor * trainSize), Y_test.reserve(Y.size() * (safty_factor - trainSize));
+
+		for (int i = 0; i < X.size(); i++)
+		{
+			X_y_combine.push_back(move(pair<string, bool> {X[i], Y[i]}));
 		}
 
 		split_data(X_y_combine, train, test, trainSize);
@@ -341,6 +377,21 @@ namespace dataManipulate
 		{
 			getline(iData, line);
 			paragraph += (line + "\n");
+		}
+	}
+
+	void load_mail(string path, string file_name, vector<string>& mail, vector<bool>& is_spam, bool spam, int num_file)
+	{
+		for (int n = 1; n < num_file +1; ++n)
+		{
+			stringstream s;
+			s << path << "\\" << file_name << " (" << n << ").txt";
+			cout << s.str() << endl;
+
+			string target_mail;
+			readParagraph(s.str().c_str(), target_mail);
+			mail.push_back(target_mail);
+			is_spam.push_back(spam);
 		}
 	}
 

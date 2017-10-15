@@ -46,13 +46,13 @@ using namespace std::chrono;
 namespace NLP_lib
 {
 	//訓練函數
-	set<string> tokenize(string text);
+	set<string> tokenize(const string& text);
 
 	map<string, vector<int>> count_words(vector<pair<string, bool>>& training_set);
 
 	void count_word(map<string, vector<int>>& countTable, string word, bool isSpam);
 
-	vector<pair<string, vector<double>>> word_probabilities(map<string, vector<int>>& count_table, int total_spams, int total_non_spams, int k = 0.5);
+	vector<pair<string, vector<double>>> word_probabilities(map<string, vector<int>>& count_table, int total_spams, int total_non_spams, double learning_constant);
 
 	double spam_probability(vector<pair<string, vector<double>>> word_probs, string message);
 
@@ -92,7 +92,8 @@ namespace NLP_lib
 	public:
 		void train(const vector<string>& X, const vector<bool>& y);
 		vector<double> predict(const vector<string>& X);
-		NaiveBayesClassifier(double k = 0.5) :leraning_Constant(k) {}
+		NaiveBayesClassifier(double k = 0.5) :leraning_Constant(k) {};
+		NaiveBayesClassifier() = delete;
 	};
 
 	//n-gram模型

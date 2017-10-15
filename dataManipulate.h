@@ -52,6 +52,8 @@ namespace dataManipulate
 
 	int load_users_information(string path, vector<vector<string>>& X);
 
+	void load_mail(string path, string file_name, vector<string>& mail, vector<bool>& is_spam, bool spam, int num_file);
+
 	//資料處理
 	vector<string> string_partition(const string &source, char delim = '\n');
 
@@ -59,9 +61,13 @@ namespace dataManipulate
 	
 	void split_data(vector<pair<map<string, string>, string>>& data, vector<pair<map<string, string>, string>>& train, vector<pair<map<string, string>, string>>& test, double trainSize);
 
+	void split_data(vector< pair<string, bool> >& data, vector<pair<string, bool>>& train, vector<pair<string, bool>>& test, double trainSize);
+
 	void train_test_split(vector<vector<double> >& X, vector<double>& Y, vector<vector<double> >& X_train, vector<double>& Y_train, vector<vector<double> >& X_test, vector<double>& Y_test, double trainSize = 0.8);
 	
 	void train_test_split(vector<map<string, string>>& X, vector<string>& Y, vector<map<string, string>>& X_train, vector<string>& Y_train, vector<map<string, string>>& X_test, vector<string>& Y_test, double trainSize = 0.8);
+
+	void train_test_split(vector<string>& X, vector<bool>& Y, vector<string>& X_train, vector<bool>& Y_train, vector<string>& X_test, vector<bool>& Y_test, double trainSize);
 
 	template<typename T>
 	vector<T> bootstrap_Xi(const vector<T>& data);

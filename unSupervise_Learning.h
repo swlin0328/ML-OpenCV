@@ -43,13 +43,11 @@ namespace unSupervise_Learning
 
 	vector<vector<double>> get_values(shared_ptr<dataStructure::cluster_node>& current_node);
 
-	double cluster_distance(shared_ptr<dataStructure::cluster_node>& cluster_node1, shared_ptr<dataStructure::cluster_node>& cluster_node2, vector<vector<double>> distance_table, const function<pair<int, double>(vector<double>&)>& distance_F);
+	double cluster_distance(shared_ptr<dataStructure::cluster_node>& cluster_node1, shared_ptr<dataStructure::cluster_node>& cluster_node2, vector<vector<double>> distance_table, const function<pair<int, double>(const vector<double>&)>& distance_F);
 
 	void init_leaf_cluster(vector<vector<double>>& data, vector<shared_ptr<dataStructure::cluster_node>>& leaf_set);
 
 	void init_distance_table(vector<shared_ptr<dataStructure::cluster_node>>& leaf_set, vector<vector<double>>& distance_table);
-
-	void assemble_cluster(vector<shared_ptr<dataStructure::cluster_node>>& leaf_set, vector<vector<double>>& distance_table, const function<pair<int, double>(vector<double>&)>& distance_F);
 
 	vector<shared_ptr<dataStructure::cluster_node>> get_children(shared_ptr<dataStructure::cluster_node>& current_node);
 
@@ -80,11 +78,16 @@ namespace unSupervise_Learning
 	{
 	private:
 		shared_ptr<dataStructure::cluster_node> root_node;
+		function<pair<int, double>(const vector<double>&)> distance_F = Statistics::minValue<double>;
 		int get_build_order(shared_ptr<dataStructure::cluster_node>& cluster_node);
-
-	public:
-		void bottom_up(vector<vector<double>>& data, const function<pair<int, double>(vector<double>&)>& distance_F);
 		vector<shared_ptr<dataStructure::cluster_node>> generate_cluster(int num_cluster);
 		shared_ptr<dataStructure::cluster_node> get_root_node() { return root_node; }
+		void assemble_cluster(vector<shared_ptr<dataStructure::cluster_node>>& leaf_set, vector<vector<double>>& distance_table, string method);
+		void search_subnode_by_DFS(shared_ptr<dataStructure::cluster_node> current_node, vector<shared_ptr<dataStructure::cluster_node>>& leaf_set);
+		double cluster_distance(shared_ptr<dataStructure::cluster_node>& cluster_node1, shared_ptr<dataStructure::cluster_node>& cluster_node2, vector<vector<double>>& distance_table, const function<pair<int, double>(const vector<double>&)>& distance_F);
+		
+	public:
+		void bottom_up(vector<vector<double>>& data, string method);
+		void predict(int num_cluster, vector<vector<double>>& data);
 	};
 }

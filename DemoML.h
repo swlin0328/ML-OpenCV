@@ -21,3 +21,7 @@ void Demo_KNN();
 void Demo_users_internet();
 
 void Demo_interest_topics();
+
+void Demo_bottom_up_cluster();
+
+void Demo_NaiveBayesClassifier();

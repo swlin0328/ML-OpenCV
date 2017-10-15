@@ -41,6 +41,8 @@ namespace Linear_Algebra
 
 	void vector_length_queal(const vector<string>& v, const vector<bool> & w);
 
+	void vector_length_queal(vector<string>& v, vector<bool> & w);
+
 	void vector_length_security(const vector<double>& v, const vector<double>& w);
 
 	void vector_subtract(const vector<double>& v, const vector<double>& w, vector<double>& result);

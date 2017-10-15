@@ -86,6 +86,7 @@ namespace Statistics
 		return makePair<int, T>(index, Max);
 	}
 
+	template<>
 	pair<int, int> maxValue(const vector<int>& v)
 	{
 		int Max = v[0];
@@ -102,7 +103,8 @@ namespace Statistics
 		return makePair<int, int>(index, Max);
 	}
 
-	pair<int, double> maxValue(vector<double>& v)
+	template<>
+	pair<int, double> maxValue(const vector<double>& v)
 	{
 		double Max = v[0];
 		int index = 0;
@@ -135,7 +137,8 @@ namespace Statistics
 		return makePair<int, T>(index, Min);
 	}
 
-	pair<int, double> minValue(vector<double>& v)
+	template<>
+	pair<int, double> minValue(const vector<double>& v)
 	{
 		double Min = v[0];
 		int index = 0;
@@ -151,7 +154,8 @@ namespace Statistics
 		return makePair<int, double>(index, Min);
 	}
 
-	pair<int, int> minValue(vector<int>& v)
+	template<>
+	pair<int, int> minValue(const vector<int>& v)
 	{
 		int Min = v[0];
 		int index = 0;

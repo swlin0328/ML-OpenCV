@@ -282,5 +282,71 @@ void Demo_interest_topics()
 
 	//--------------------validate--------------------
 	K_interest.show_result(3);
+}
 
+void Demo_bottom_up_cluster()
+{
+	string Path{ R"(C:\Users\Acer\Desktop\ML作品集2017.10.10\測試數據集\bottomUp_dataset_測試完成\bottomUp_dataset.txt)" };
+
+	vector<vector<double>> X, train_X, validate_X;
+	vector<double> Y, train_Y, validate_Y;
+	string cmd = "train";
+	Linear_Algebra::make_Matrix(X, 10, 10);
+
+	//--------------------load data--------------------
+	dataManipulate::load_Data_With_Bias(Path, X, Y,
+		[](string label) {stringstream encoder{ label }; double val; encoder >> val; return val; }, cmd, 3, 1);
+
+	//--------------------data rescale--------------------
+	vector<vector<double>> Xt{ Linear_Algebra::transpose(X) };
+	Statistics::rescale(Xt);
+	vector<vector<double>> rescale_X{ Linear_Algebra::transpose(Xt) };
+	dataManipulate::train_test_split(rescale_X, Y, train_X, train_Y, validate_X, validate_Y, 0.85);
+
+	//--------------------train--------------------
+	string method = "max";
+	unSupervise_Learning::bottom_up_cluster three_clusters;
+	three_clusters.bottom_up(train_X, method);
+
+	//--------------------validate--------------------
+	three_clusters.predict(3, validate_X);
+}
+
+void Demo_NaiveBayesClassifier()
+{
+	string not_spam_Path{ R"(C:\Users\Acer\Desktop\ML作品集2017.10.10\測試數據集\Bayes_dataset_測試完成\not_spam)" };
+	string spam_Path{ R"(C:\Users\Acer\Desktop\ML作品集2017.10.10\測試數據集\Bayes_dataset_測試完成\spam)" };
+
+	vector<string> spam_X, not_spam_X;
+	vector<bool> spam_label, not_spam_label;
+	vector<string> mail;
+	vector<bool> label;
+
+	//--------------------load data--------------------
+	dataManipulate::load_mail(not_spam_Path, "not_spam", not_spam_X, not_spam_label, false, 25);
+	dataManipulate::load_mail(spam_Path, "is_spam", spam_X, spam_label, true, 25);
+	for (int i = 0; i < spam_X.size(); i++)
+	{
+		mail.push_back(not_spam_X[i]);
+		mail.push_back(spam_X[i]);
+		label.push_back(not_spam_label[i]);
+		label.push_back(spam_label[i]);
+	}
+
+	//--------------------data rescale--------------------
+	vector<string> train_X, validate_X;
+	vector<bool> train_Y, validate_Y;
+	dataManipulate::train_test_split(mail, label, train_X, train_Y, validate_X, validate_Y, 0.8);
+
+	//--------------------train--------------------
+	NLP_lib::NaiveBayesClassifier spam_classifier(0.5);
+	spam_classifier.train(train_X, train_Y);
+
+	//--------------------validate--------------------
+	vector<double> spam_probability = spam_classifier.predict(validate_X);
+	for (int i = 0; i < spam_probability.size(); i++)
+	{
+		cout << "\nThe mail " << i << " is spam : " << validate_Y[i] << "\n";
+		cout << "The predicted probability to be spam is " << round(10000*spam_probability[i]) / 100 << "%\n";
+	}
 }

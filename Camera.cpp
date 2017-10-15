@@ -33,7 +33,9 @@ int main(void)
 	//Demo_KNN();
 	//Demo_users_internet();
 	//Demo_interest_topics();
-
+	//Demo_bottom_up_cluster();
+	//Demo_NaiveBayesClassifier();
+	
 	system("pause");
 	return 0;
 }

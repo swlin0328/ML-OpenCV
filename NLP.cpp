@@ -18,12 +18,12 @@
 //自然語言
 namespace NLP_lib
 {
-	set<string> tokenize(string text)
+	set<string> tokenize(const string& text)
 	{
 		istringstream iData{ text };
 		string line, word;
 		set<string> unique_word_set;
-		regex word_pattern{ "[a-z0-9A-Z]+ .?" };
+		regex word_pattern("([a-z0-9A-Z]+)[\.]?");
 
 		while (getline(iData, line) && iData.peek() != EOF)
 		{
@@ -61,6 +61,11 @@ namespace NLP_lib
 
 	void count_word(map<string, vector<int>>& countTable, string word, bool isSpam)
 	{
+		if (countTable[word].size() == 0)
+		{
+			countTable[word].resize(2, 0);
+		}
+
 		if (countTable.find(word) != countTable.end())
 		{
 			countTable[word][isSpam]++;
@@ -95,7 +100,7 @@ namespace NLP_lib
 		return pair<int, string>(count[max_index], answer[max_index]);
 	}
 
-	vector<pair<string, vector<double>>> word_probabilities(map<string, vector<int>>& count_table, int total_spams, int total_non_spams, int k)
+	vector<pair<string, vector<double>>> word_probabilities(map<string, vector<int>>& count_table, int total_spams, int total_non_spams, double learning_constant)
 	{
 		vector<pair<string,vector<double>>> word_probability;
 		for (auto iter = count_table.begin(); iter != count_table.end(); iter++)
@@ -105,8 +110,8 @@ namespace NLP_lib
 			vector<double> probability;
 			double spam_probability, non_spam_probability;
 			
-			spam_probability = (frequency[1] + k) / (total_spams + 2 * k);
-			non_spam_probability = (frequency[0] + k) / (total_non_spams + 2 * k);
+			spam_probability = (frequency[1] + learning_constant) / (total_spams + 2.0 * learning_constant);
+			non_spam_probability = (frequency[0] + learning_constant) / (total_non_spams + 2.0 * learning_constant);
 			//spam_probability[is_Spam]
 			probability.push_back(non_spam_probability);
 			probability.push_back(spam_probability);

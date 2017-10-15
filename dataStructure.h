@@ -49,21 +49,10 @@ namespace dataStructure
 		{
 			child_nodes.push_back(node1);
 			child_nodes.push_back(node2);
-			if (!(node1->is_leaf))
-			{
-				for (int i = 0; i < node1->child_nodes.size(); i++)
-				{
-					child_nodes.push_back(node1->child_nodes[i]);
-				}
-			}
-			if (!(node2->is_leaf))
-			{
-				for (int i = 0; i < node2->child_nodes.size(); i++)
-				{
-					child_nodes.push_back(node2->child_nodes[i]);
-				}
-			}
+
+			is_leaf = false;
 			build_count.count++;
+			order++;
 		};
 	};
 
