@@ -844,4 +844,460 @@ namespace cv_lib
 		Mat resultMat = mean_a.mul(srcImage) + mean_b;
 		return resultMat;
 	}
+
+	bool SobelOptaEdge(const Mat& srcImage, Mat& resultImage, int flag)
+	{
+		CV_Assert(srcImage.channels() == 1);
+		Mat sobelX = (Mat_<double>(3, 3) << 1, 0, -1,
+											2, 0, -2,
+											1, 0, -1);
+		Mat sobelY = (Mat_<double>(3, 3) << 1, 2, 1,
+											0, 0, 0,
+											-1, -2, -1);
+		Mat edgeX, edgeY;
+		filter2D(srcImage, edgeX, CV_32F, sobelX);
+		filter2D(srcImage, edgeY, CV_32F, sobelY);
+		int paraX = 0;
+		int paraY = 0;
+		switch (flag)
+		{
+		case 0: paraX = 1;
+				paraY = 0;
+				break;
+		case 1: paraX = 0;
+				paraY = 1;
+				break;
+		case 2: paraX = 1;
+				paraY = 1;
+				break;
+		default: break;
+		}
+		edgeX = abs(edgeX);
+		edgeY = abs(edgeY);
+		Mat graMagMat = paraX * edgeX.mul(edgeX) + paraY * edgeY.mul(edgeY);
+
+		int scaleVal = 4;
+		double thresh = scaleVal * mean(graMagMat).val[0];
+		resultImage = Mat::zeros(srcImage.size(), srcImage.type());
+
+		for (int i = 1; i < srcImage.rows - 1; i++)
+		{
+			float* pDataEdgeX = edgeX.ptr<float>(i);
+			float* pDataEdgeY = edgeY.ptr<float>(i);
+			float* pDataGraMag = graMagMat.ptr<float>(i);
+
+			for (int j = 1; j < srcImage.cols - 1; j++)
+			{
+				if(pDataGraMag[j] > thresh 
+					&& ((pDataEdgeX[j] > paraX * pDataEdgeY[j] 
+							&& pDataGraMag[j] > pDataGraMag[j-1]
+							&& pDataGraMag[j] > pDataGraMag[j+1])
+						|| (pDataEdgeY[j] > paraY * pDataEdgeX[j]
+							&& pDataGraMag[j] > pDataGraMag[j-1]
+							&& pDataGraMag[j] > pDataGraMag[j+1])))
+				{
+					resultImage.at<uchar>(i, j) = 255;
+				}	
+			}
+		}
+		return true;
+	}
+
+	Mat roberts(Mat srcImage)
+	{
+		Mat dstImage = srcImage.clone();
+		int nRows = dstImage.rows;
+		int nCols = dstImage.cols;
+
+		for (int i = 0; i < nRows - 1; i++)
+		{
+			for (int j = 0; j < nCols - 1; j++)
+			{
+				int t1 = pow((srcImage.at<uchar>(i, j) - srcImage.at<uchar>(i + 1, j + 1)) * (srcImage.at<uchar>(i, j) - srcImage.at<uchar>(i + 1, j + 1)), 2);
+				int t2 = pow((srcImage.at<uchar>(i + 1, j) - srcImage.at<uchar>(i, j + 1)), 2);
+				dstImage.at<uchar>(i, j) = (uchar)sqrt(t1 + t2);
+			}
+		}
+		return dstImage;
+	}
+
+	void cacBounding(Mat src)
+	{
+		RNG rng(12345);
+		Mat threMat;
+		vector<vector<Point>> contours;
+		vector<Vec4i> hierarchy;
+		threshold(src, threMat, 120, 255, THRESH_BINARY);
+		imshow("threMat", threMat);
+		
+		findContours(threMat, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
+		vector<vector<Point>> conPoint(contours.size());
+		vector<Rect> boundRect(contours.size());
+		vector<Point2f> center(contours.size());
+		vector<float> radius(contours.size());
+
+		for (int i = 0; i < contours.size(); i++)
+		{
+			approxPolyDP(Mat(contours[i]), conPoint[i], 3, true);
+			boundRect[i] = boundingRect(Mat(conPoint[i]));
+			minEnclosingCircle(conPoint[i], center[i], radius[i]);
+		}
+		Mat resultMat = Mat::zeros(threMat.size(), CV_8UC3);
+		
+		for (int i = 0; i < contours.size(); i++)
+		{
+			Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
+			drawContours(resultMat, conPoint, i, color, 1, 8, vector<Vec4i>(), 0, Point());
+			rectangle(resultMat, boundRect[i].tl(), boundRect[i].br(), color, 2, 8, 0);
+			circle(resultMat, center[i], (int)radius[i], color, 2, 8, 0);
+		}
+		imshow("boundRectResult", resultMat);
+	}
+
+	void cacBoundRectRandomDirection(Mat src)
+	{
+		RNG rng(12345);
+		Mat threMat;
+		vector<vector<Point>> contours;
+		vector<Vec4i> hierarchy;
+		threshold(src, threMat, 120, 255, THRESH_BINARY);
+		findContours(threMat, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
+		vector<RotatedRect> minRect(contours.size());
+		vector<RotatedRect> minEllipse(contours.size());
+		
+		for (int i = 0; i < contours.size(); i++)
+		{
+			minRect[i] = minAreaRect(Mat(contours[i]));
+
+			if (contours[i].size() > 5)
+			{
+				minEllipse[i] = fitEllipse(Mat(contours[i]));
+			}
+		}
+
+		Mat resultMat = Mat::zeros(threMat.size(), CV_8UC3);
+		for (int i = 0; i < contours.size(); i++)
+		{
+			Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
+			drawContours(resultMat, contours, i, color, 1, 8, vector<Vec4i>(), 0, Point());
+			ellipse(resultMat, minEllipse[i], color, 2, 8);
+			Point2f rect_points[4];
+			minRect[i].points(rect_points);
+			for (int j = 0; j < 4; j++)
+			{
+				line(resultMat, rect_points[j], rect_points[(j + 1) % 4], color, 1, 8);
+			}
+		}
+		imshow("resultMat", resultMat);
+	}
+
+	Mat MoravecCorners(Mat srcImage, int kSize, int threshold)
+	{
+		Mat resMorMat = srcImage.clone();
+		int r = kSize / 2;
+		const int nRows = srcImage.rows;
+		const int nCols = srcImage.cols;
+		int nCount = 0;
+		CvPoint *pPoint = new CvPoint[nRows*nCols];
+		
+		for (int i = r; i < srcImage.rows - r; i++)
+		{
+			for (int j = r; j < srcImage.cols - r; j++)
+			{
+				int wV1, wV2, wV3, wV4;
+				wV1 = wV2 = wV3 = wV4 = 0;
+
+				for (int k = -r; k < r; k++)
+				{
+					wV1 += pow((srcImage.at<uchar>(i, j + k) - srcImage.at<uchar>(i, j + k + 1)), 2);
+				}
+
+				for (int k = -r; k < r; k++)
+				{
+					wV2 += pow((srcImage.at<uchar>(i + k, j) - srcImage.at<uchar>(i + k + 1, j)), 2);
+				}
+
+				for (int k = -r; k < r; k++)
+				{
+					wV3 += pow((srcImage.at<uchar>(i + k, j + k) - srcImage.at<uchar>(i + k + 1, j + k + 1)), 2);
+				}
+
+				for (int k = -r; k < r; k++)
+				{
+					wV4 += pow((srcImage.at<uchar>(i + k, j - k) - srcImage.at<uchar>(i + k + 1, j - k - 1)), 2);
+				}
+				int value = min(min(wV1, wV2), min(wV3, wV4));
+				
+				if (value > threshold)
+				{
+					pPoint[nCount] = cvPoint(j, i);
+					nCount++;
+				}
+			}
+		}
+		for (int i = 0; i < nCount; i++)
+		{
+			circle(resMorMat, pPoint[i], 5, Scalar(255, 0, 0));
+		}
+		return resMorMat;
+	}
+
+	void CornerHarris(const Mat& srcImage, Mat& result, int blockSize, int kSize, double k)
+	{
+		Mat src;
+		srcImage.copyTo(src);
+		result.create(src.size(), CV_32F);
+		int depth = src.depth();
+
+		double scale = (double)(1 << ((kSize > 0 ? kSize : 3) - 1)) * blockSize;
+		if (depth == CV_8U)
+		{
+			scale *= 255;
+		}
+		scale = 1.0 / scale;
+
+		Mat dx, dy;
+		Sobel(src, dx, CV_32F, 1, 0, kSize, scale, 0);
+		Sobel(src, dy, CV_32F, 0, 1, kSize, scale, 0);
+		Size size = src.size();
+		Mat cov(size, CV_32FC3);
+		
+		for (int i = 0; i < size.height; i++)
+		{
+			float *covData = (float*)(cov.data + i * cov.step);
+			const float *dxData = (const float*)(dx.data + i * dx.step);
+			const float *dyData = (const float*)(dy.data + i * dy.step);
+			
+			for (int j = 0; j < size.width; j++)
+			{
+				float dx_ = dxData[j];
+				float dy_ = dyData[j];
+
+				covData[3 * j] = dx_ * dx_;
+				covData[3 * j + 1] = dx_ * dy_;
+				covData[3 * j + 2] = dy_ * dy_;
+			}
+		}
+		boxFilter(cov, cov, cov.depth(), Size(blockSize, blockSize), Point(-1, -1), false);
+		
+		if (cov.isContinuous() && result.isContinuous())
+		{
+			size.width *= size.height;
+			size.height = 1;
+		}
+		else
+		{
+			size = result.size();
+		}
+
+		for (int i = 0; i < size.height; i++)
+		{
+			float *resultData = (float*)(result.data + i*result.step);
+			const float *covData = (const float*)(cov.data + i * cov.step);
+
+			for (int j = 0; j < size.width; j++)
+			{
+				float a = covData[3 * j];
+				float b = covData[3 * j + 1];
+				float c = covData[3 * j + 2];
+
+				resultData[j] = a*c - b*b - k*(a + c)*(a + c);
+			}
+		}
+	}
+
+	vector<Mat> hsv_analysis(Mat& srcImage)
+	{
+		Mat img_h, img_s, img_v, imghsv;
+		vector<Mat> hsv_vec;
+		cvtColor(srcImage, imghsv, CV_BGR2HSV);
+		imshow("hsv", imghsv);
+		waitKey(0);
+
+		split(imghsv, hsv_vec);
+		img_h = hsv_vec[0];
+		img_s = hsv_vec[1];
+		img_v = hsv_vec[2];
+
+		img_h.convertTo(img_h, CV_32F);
+		img_s.convertTo(img_s, CV_32F);
+		img_v.convertTo(img_v, CV_32F);
+
+		double max_s, max_h, max_v;
+		minMaxIdx(img_h, 0, &max_h);
+		minMaxIdx(img_s, 0, &max_s);
+		minMaxIdx(img_v, 0, &max_v);
+
+		img_h /= max_h;
+		img_s /= max_s;
+		img_v /= max_v;
+		return vector<Mat>{img_h, img_s, img_v};
+	}
+
+	bool SobelVerEdge(Mat srcImage, Mat& resultImage)
+	{
+		CV_Assert(srcImage.channels == 1);
+		srcImage.convertTo(srcImage, CV_32FC1);
+
+		Mat sobelx = (Mat_<float>(3, 3) <<
+			-0.125, 0, 0.125,
+			-0.250, 0, 0.250,
+			-0.125, 0, 0.125);
+
+		Mat ConResMat, graMagMat;
+		filter2D(srcImage, ConResMat, srcImage.type(), sobelx);
+		multiply(ConResMat, ConResMat, graMagMat);
+
+		int scaleVal = 4;
+		double thresh = scaleVal * mean(graMagMat).val[0];
+		Mat resultTempMat = Mat::zeros(graMagMat.size(), graMagMat.type());
+		float* pDataMag = (float*)graMagMat.data;
+		float* pDataRes = (float*)resultTempMat.data;
+
+		const int nRows = ConResMat.rows;
+		const int nCols = ConResMat.cols;
+		for (int i = 1; i < nRows - 1; i++)
+		{
+			for (int j = 1; j < nCols - 1; j++)
+			{
+				bool b1 = pDataMag[i * nCols + j] > pDataMag[i * nCols + j - 1];
+				bool b2 = pDataMag[i * nCols + j] > pDataMag[i * nCols + j + 1];
+				bool b3 = pDataMag[i * nCols + j] > pDataMag[(i - 1) * nCols + j];
+				bool b4 = pDataMag[i * nCols + j] > pDataMag[(i + 1) * nCols + j];
+
+				pDataRes[i * nCols + j] = 255 * ((pDataMag[i * nCols + j] > thresh) && ((b1&&b2) || (b3&&b4)));
+			}
+		}
+		resultTempMat.convertTo(resultImage, CV_8UC1);
+		resultImage = resultTempMat.clone();
+		return true;
+	}
+
+	Mat detect_License_Plate(Mat& srcImage)
+	{
+		/*
+		車牌背景底色範圍
+			藍色通道限定範圍 0.35 < H < 0.7, S > 0.1, I > 0.1
+			黃色通道限定範圍 H < 0.4, S > 0.1, I > 0.3
+			黑色通道限定範圍 I < 0.5
+			白色通道限定範圍 S < 0.4, I > 0.5
+		*/
+		vector<Mat> hsvImage = hsv_analysis(srcImage);
+		Mat bw_blue = ((hsvImage[0] > 0.45) & (hsvImage[0] < 0.75) & (hsvImage[1] > 0.15) & (hsvImage[2] > 0.25));
+		int height = bw_blue.rows;
+		int width = bw_blue.cols;
+		Mat bw_blue_edge = Mat::zeros(bw_blue.size(), bw_blue.type());
+
+		Mat sobelMat;
+		SobelVerEdge(srcImage, sobelMat);
+
+		imshow("bw_blue", bw_blue);
+		waitKey(0);
+
+		for (int i = 1; i < height - 2; i++)
+		{
+			for (int j = 1; j < width - 2; j++)
+			{
+				Rect rct;
+				rct.x = j - 1;
+				rct.y = i - 1;
+				rct.height = 3;
+				rct.width = 3;
+
+				if ((sobelMat.at<uchar>(i, j) == 255) && countNonZero(bw_blue(rct) >= 1))
+				{
+					bw_blue_edge.at<uchar>(i, j) = 255;
+				}
+			}
+		}
+	}
+
+	void extract_License_Plate(Mat& srcImage)
+	{
+		Mat morph, bw_blue_edge = detect_License_Plate(srcImage);
+		morphologyEx(bw_blue_edge, morph, MORPH_CLOSE, Mat::ones(2, 25, CV_8UC1));
+		imshow("morphology_bw_blue_edge", bw_blue_edge);
+		waitKey(0);
+
+		vector<vector<Point>> region_contours;
+		findContours(morph.clone, region_contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
+		vector<Rect> candidatets;
+		vector<Mat> candidate_img;
+
+		for (int n = 0; n != region_contours.size(); n++)
+		{
+			Rect rect = boundingRect(region_contours[n]);
+			int sub = countNonZero(morph(rect));
+			double ratio = double(sub) / rect.area();
+			double wh_ratio = double(rect.width) / rect.height;
+
+			if (ratio > 0.5 && wh_ratio > 2 && wh_ratio < 5 && rect.height > 12 && rect.width > 60)
+			{
+				Mat small = bw_blue_edge(rect);
+				imshow("rect", srcImage(rect));
+				waitKey(0);
+			}
+		}
+	}
+
+	Mat extract_License_Plate_by_MorphologyEx(Mat& srcGray, int width, int height)
+	{
+		Mat result;
+		morphologyEx(srcGray, result, MORPH_GRADIENT, Mat(1, 2, CV_8U, Scalar(1)));
+		threshold(result, result, 255 * (0.1), 255, THRESH_BINARY);
+
+		if (width >= 400 && width < 600)
+		{
+			morphologyEx(result, result, MORPH_CLOSE, Mat(1, 25, CV_8U, Scalar(1)));
+		}
+		else if (width >= 200 && width < 300)
+		{
+			morphologyEx(result, result, MORPH_CLOSE, Mat(1, 20, CV_8U, Scalar(1)));
+		}
+		else if (width >= 600)
+		{
+			morphologyEx(result, result, MORPH_CLOSE, Mat(1, 28, CV_8U, Scalar(1)));
+		}
+		else
+		{
+			morphologyEx(result, result, MORPH_CLOSE, Mat(1, 15, CV_8U, Scalar(1)));
+		}
+
+		if (height >= 400 && height < 600)
+		{
+			morphologyEx(result, result, MORPH_CLOSE, Mat(8, 1, CV_8U, Scalar(1)));
+		}
+		else if (height >= 200 && height < 300)
+		{
+			morphologyEx(result, result, MORPH_CLOSE, Mat(6, 1, CV_8U, Scalar(1)));
+		}
+		else if (height >= 600)
+		{
+			morphologyEx(result, result, MORPH_CLOSE, Mat(10, 1, CV_8U, Scalar(1)));
+		}
+		else
+		{
+			morphologyEx(result, result, MORPH_CLOSE, Mat(4, 1, CV_8U, Scalar(1)));
+		}
+		vector<vector<Point>> blue_contours;
+		vector<Rect> blue_rect;
+		findContours(result.clone(), blue_contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
+
+		for (int i = 0; i < blue_contours.size(); i++)
+		{
+			Rect rect = boundingRect(blue_contours[i]);
+			double wh_ratio = double(rect.width) / rect.height;
+			int sub = countNonZero(result(rect));
+			double ratio = double(sub) / rect.area();
+			
+			if (wh_ratio > 2 && wh_ratio < 8 && rect.height > 12 && rect.width > 60 && ratio > 0.4)
+			{
+				blue_rect.push_back(rect);
+				imshow("rect", srcGray(rect));
+				waitKey(0);
+			}
+		}
+		imshow("result", result);
+		waitKey(0);
+	}
 }
