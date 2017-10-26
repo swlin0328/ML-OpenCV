@@ -129,6 +129,7 @@
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="cvlib.cpp" />
+    <ClCompile Include="cv_objDetect.cpp" />
     <ClCompile Include="dataManipulate.cpp" />
     <ClCompile Include="dataStructure.cpp" />
     <ClCompile Include="DemoML.cpp" />
@@ -140,6 +141,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cvlib.h" />
+    <ClInclude Include="cv_objDetect.h" />
     <ClInclude Include="dataManipulate.h" />
     <ClInclude Include="dataStructure.h" />
     <ClInclude Include="DemoML.h" />

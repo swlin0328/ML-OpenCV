@@ -1106,7 +1106,7 @@ namespace cv_lib
 		}
 	}
 
-	vector<Mat> hsv_analysis(Mat& srcImage)
+	vector<Mat> hsv_Analysis(Mat& srcImage)
 	{
 		Mat img_h, img_s, img_v, imghsv;
 		vector<Mat> hsv_vec;
@@ -1136,7 +1136,7 @@ namespace cv_lib
 
 	bool SobelVerEdge(Mat srcImage, Mat& resultImage)
 	{
-		CV_Assert(srcImage.channels == 1);
+		CV_Assert(srcImage.channels() == 1);
 		srcImage.convertTo(srcImage, CV_32FC1);
 
 		Mat sobelx = (Mat_<float>(3, 3) <<
@@ -1173,131 +1173,167 @@ namespace cv_lib
 		return true;
 	}
 
-	Mat detect_License_Plate(Mat& srcImage)
+	Mat watershedSegment(Mat& srcImage, int& noOfSegments)
 	{
-		/*
-		車牌背景底色範圍
-			藍色通道限定範圍 0.35 < H < 0.7, S > 0.1, I > 0.1
-			黃色通道限定範圍 H < 0.4, S > 0.1, I > 0.3
-			黑色通道限定範圍 I < 0.5
-			白色通道限定範圍 S < 0.4, I > 0.5
-		*/
-		vector<Mat> hsvImage = hsv_analysis(srcImage);
-		Mat bw_blue = ((hsvImage[0] > 0.45) & (hsvImage[0] < 0.75) & (hsvImage[1] > 0.15) & (hsvImage[2] > 0.25));
-		int height = bw_blue.rows;
-		int width = bw_blue.cols;
-		Mat bw_blue_edge = Mat::zeros(bw_blue.size(), bw_blue.type());
+		Mat grayMat, otsuMat;
+		cvtColor(srcImage, grayMat, CV_BGR2GRAY);
+		threshold(grayMat, otsuMat, 0, 255, CV_THRESH_BINARY_INV + CV_THRESH_OTSU);
 
-		Mat sobelMat;
-		SobelVerEdge(srcImage, sobelMat);
+		Mat disTranMat(otsuMat.rows, otsuMat.cols, CV_32FC1);
+		distanceTransform(otsuMat, disTranMat, CV_DIST_L2, 3);
+		normalize(disTranMat, disTranMat, 0.0, 1, NORM_MINMAX);
+		imshow("DisTranMat", disTranMat);
 
-		imshow("bw_blue", bw_blue);
-		waitKey(0);
+		threshold(disTranMat, disTranMat, 0.1, 1, CV_THRESH_BINARY);
+		normalize(disTranMat, disTranMat, 0.0, 255.0, NORM_MINMAX);
+		disTranMat.convertTo(disTranMat, CV_8UC1);
+		imshow("TDisTranMat", disTranMat);
 
-		for (int i = 1; i < height - 2; i++)
+		int compCount = 0;
+		vector<vector<Point>> contours;
+		vector<Vec4i> hierarchy;
+		findContours(disTranMat, contours, hierarchy, CV_RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE);
+
+		if (contours.empty())
 		{
-			for (int j = 1; j < width - 2; j++)
-			{
-				Rect rct;
-				rct.x = j - 1;
-				rct.y = i - 1;
-				rct.height = 3;
-				rct.width = 3;
+			return Mat();
+		}
+		
+		Mat markers(disTranMat.size(), CV_32S);
+		markers = Scalar::all(0);
+		for (int idx = 0; idx >= 0; idx = hierarchy[idx][0], compCount++)
+		{
+			drawContours(markers, contours, idx, Scalar::all(compCount + 1), -1, 8, hierarchy, INT_MAX);
+		}
 
-				if ((sobelMat.at<uchar>(i, j) == 255) && countNonZero(bw_blue(rct) >= 1))
+		if (compCount == 0)
+		{
+			return Mat();
+		}
+
+		watershed(srcImage, markers);
+		Mat wshed = displaySegResult(markers, compCount, srcImage);
+		imshow("watershed transform", wshed);
+		noOfSegments = compCount;
+		return markers;
+	}
+
+	Mat displaySegResult(Mat & segments, int numOfSegments, Mat & image)
+	{
+		Mat wshed(segments.size(), CV_8UC3);
+
+		vector<Vec3b> colorTab;
+		for (int i = 0; i < numOfSegments; i++)
+		{
+			int b = theRNG().uniform(0, 255);
+			int g = theRNG().uniform(0, 255);
+			int r = theRNG().uniform(0, 255);
+			colorTab.push_back(Vec3b((uchar)b, (uchar)g, (uchar)r));
+		}
+		//每個部份不同顏色
+		for (int i = 0; i < segments.rows; i++)
+		{
+			for (int j = 0; j < segments.cols; j++)
+			{
+				int index = segments.at<int>(i, j);
+				if (index == -1)
+					wshed.at<Vec3b>(i, j) = Vec3b(255, 255, 255);
+				else if (index <= 0 || index > numOfSegments)
+					wshed.at<Vec3b>(i, j) = Vec3b(0, 0, 0);
+				else
+					wshed.at<Vec3b>(i, j) = colorTab[index - 1];
+			}
+		}
+		if (image.dims>0)
+			wshed = wshed*0.5 + image*0.5;
+		return wshed;
+	}
+
+	void segMerge(Mat& image, Mat& segments, int& numSeg)
+	{
+		vector<Mat> samples;
+		int newNumSeg = numSeg;
+
+		for (int i = 0; i < numSeg; i++)
+		{
+			Mat sampleImage;
+			samples.push_back(sampleImage);
+		}
+		
+		for (int i = 0; i < segments.rows; i++)
+		{
+			for (int j = 0; j < segments.cols; j++)
+			{
+				int index = segments.at<int>(i, j);
+				if (index >= 0 && index < numSeg)
 				{
-					bw_blue_edge.at<uchar>(i, j) = 255;
+					samples[index].push_back(image(Rect(j, i, 1, 1)));
 				}
 			}
 		}
-	}
 
-	void extract_License_Plate(Mat& srcImage)
-	{
-		Mat morph, bw_blue_edge = detect_License_Plate(srcImage);
-		morphologyEx(bw_blue_edge, morph, MORPH_CLOSE, Mat::ones(2, 25, CV_8UC1));
-		imshow("morphology_bw_blue_edge", bw_blue_edge);
-		waitKey(0);
+		vector<MatND> hist_bases;
+		Mat hsv_base;
+		int h_bins = 35;
+		int s_bins = 30;
+		int histSize[] = { h_bins, s_bins };
+		float h_ranges[] = { 0, 256 };
+		float s_ranges[] = { 0, 180 };
+		const float* ranges[] = { h_ranges, s_ranges };
+		int channels[] = { 0, 1 };
+		MatND hist_base;
 
-		vector<vector<Point>> region_contours;
-		findContours(morph.clone, region_contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
-		vector<Rect> candidatets;
-		vector<Mat> candidate_img;
-
-		for (int n = 0; n != region_contours.size(); n++)
+		for (int c = 0; c < numSeg; c++)
 		{
-			Rect rect = boundingRect(region_contours[n]);
-			int sub = countNonZero(morph(rect));
-			double ratio = double(sub) / rect.area();
-			double wh_ratio = double(rect.width) / rect.height;
-
-			if (ratio > 0.5 && wh_ratio > 2 && wh_ratio < 5 && rect.height > 12 && rect.width > 60)
+			if (samples[c].dims > 0)
 			{
-				Mat small = bw_blue_edge(rect);
-				imshow("rect", srcImage(rect));
-				waitKey(0);
+				cvtColor(samples[c], hsv_base, CV_BGR2HSV);
+				calcHist(&hsv_base, 1, channels, Mat(), hist_base, 2, histSize, ranges, true, false);
+				normalize(hist_base, hist_base, 0, 1, NORM_MINMAX, -1, Mat());
+				hist_bases.push_back(hist_base);
+			}
+			else
+			{
+				hist_bases.push_back(MatND());
+			}
+			hist_base.release();
+		}
+
+		double similarity = 0;
+		vector<bool> merged(false, hist_bases.size());
+
+		for (int c = 0; c < hist_bases.size(); c++)
+		{
+			for (int q = c + 1; q < hist_bases.size(); q++)
+			{
+				if (!merged[q])
+				{
+					if (hist_bases[c].dims > 0 && hist_bases[q].dims > 0)
+					{
+						similarity = compareHist(hist_bases[c], hist_bases[q], CV_COMP_BHATTACHARYYA);
+						if (similarity > 0.8)
+						{
+							merged[q] = true;
+							if (q != c)
+							{
+								newNumSeg--;
+								for (int i = 0; i < segments.rows; i++)
+								{
+									for (int j = 0; j < segments.cols; j++)
+									{
+										int index = segments.at<int>(i, j);
+										if (index == q)
+										{
+											segments.at<int>(i, j) = c;
+										}
+									}
+								}
+							}
+						}
+					}
+				}
 			}
 		}
-	}
-
-	Mat extract_License_Plate_by_MorphologyEx(Mat& srcGray, int width, int height)
-	{
-		Mat result;
-		morphologyEx(srcGray, result, MORPH_GRADIENT, Mat(1, 2, CV_8U, Scalar(1)));
-		threshold(result, result, 255 * (0.1), 255, THRESH_BINARY);
-
-		if (width >= 400 && width < 600)
-		{
-			morphologyEx(result, result, MORPH_CLOSE, Mat(1, 25, CV_8U, Scalar(1)));
-		}
-		else if (width >= 200 && width < 300)
-		{
-			morphologyEx(result, result, MORPH_CLOSE, Mat(1, 20, CV_8U, Scalar(1)));
-		}
-		else if (width >= 600)
-		{
-			morphologyEx(result, result, MORPH_CLOSE, Mat(1, 28, CV_8U, Scalar(1)));
-		}
-		else
-		{
-			morphologyEx(result, result, MORPH_CLOSE, Mat(1, 15, CV_8U, Scalar(1)));
-		}
-
-		if (height >= 400 && height < 600)
-		{
-			morphologyEx(result, result, MORPH_CLOSE, Mat(8, 1, CV_8U, Scalar(1)));
-		}
-		else if (height >= 200 && height < 300)
-		{
-			morphologyEx(result, result, MORPH_CLOSE, Mat(6, 1, CV_8U, Scalar(1)));
-		}
-		else if (height >= 600)
-		{
-			morphologyEx(result, result, MORPH_CLOSE, Mat(10, 1, CV_8U, Scalar(1)));
-		}
-		else
-		{
-			morphologyEx(result, result, MORPH_CLOSE, Mat(4, 1, CV_8U, Scalar(1)));
-		}
-		vector<vector<Point>> blue_contours;
-		vector<Rect> blue_rect;
-		findContours(result.clone(), blue_contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
-
-		for (int i = 0; i < blue_contours.size(); i++)
-		{
-			Rect rect = boundingRect(blue_contours[i]);
-			double wh_ratio = double(rect.width) / rect.height;
-			int sub = countNonZero(result(rect));
-			double ratio = double(sub) / rect.area();
-			
-			if (wh_ratio > 2 && wh_ratio < 8 && rect.height > 12 && rect.width > 60 && ratio > 0.4)
-			{
-				blue_rect.push_back(rect);
-				imshow("rect", srcGray(rect));
-				waitKey(0);
-			}
-		}
-		imshow("result", result);
-		waitKey(0);
+		numSeg = newNumSeg;
 	}
 }

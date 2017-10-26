@@ -16,6 +16,11 @@
 
 #define __cvlib
 
+#ifndef __cv_objDetect
+#define __cv_objDetect
+#include "cv_objDetect.h"
+#endif
+
 using namespace std;
 using namespace cv;
 
@@ -44,6 +49,13 @@ namespace cv_lib
 
 	Mat inverseColor(Mat& srcImage); //LUT反色
 
+	//分水嶺分割
+	Mat displaySegResult(Mat& segments, int numOfSegments, Mat& image);
+
+	Mat watershedSegment(Mat& srcImage, int& noOfSegments);
+
+	void segMerge(Mat& image, Mat& segment, int& numSeg);
+
 	//統計分析
 	void show_Gray_Histogram(Mat& srcImage);
 
@@ -63,7 +75,7 @@ namespace cv_lib
 
 	void convolution(Mat src, Mat kernel, Mat& dst);
 
-	vector<Mat> hsv_analysis(Mat& srcImage);
+	vector<Mat> hsv_Analysis(Mat& srcImage);
 
 	//二維捲積
 	Mat Myfilter2D(Mat srcImage);
@@ -89,17 +101,10 @@ namespace cv_lib
 	void CornerHarris(const Mat& srcImage, Mat& result, int blockSize, int kSize, double k); //blockSize, kSize, k 角點檢測參數
 
 	//圖像比對
-	double PSNR(const Mat& Img1, const Mat& Img2);  //計算PSNR峰值信噪比，返回值為30~50dB，值越大越好
+	double PSNR(const Mat& Img1, const Mat& Img2);  //計算PSNR峰值信噪比，返回值30~50dB，值越大越好
 
-	Scalar MSSIM(const Mat& Img1, const Mat& Img2); //計算MSSIM結構相似性，返回值從0到1，值越大越好
+	Scalar MSSIM(const Mat& Img1, const Mat& Img2); //計算MSSIM結構相似性，返回值0到1，值越大越好
 
 	//影像讀取
 	void readImgNamefromFile(char* fileName, vector<string>& imgNames);
-
-	//影像檢測
-	Mat detect_License_Plate(Mat& srcImage);
-
-	void extract_License_Plate(Mat& srcImage);
-
-	Mat extract_License_Plate_by_MorphologyEx(Mat& srcGray, int width, int height);
 }
