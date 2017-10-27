@@ -8,6 +8,9 @@
 ---博碩, "Python 機器學習", Sebastian Raschka", ISBN 978-986-434-140-5
 的Python程式碼
 
+---電子工業出版社, "OpenCV 圖像處理編程實例", 朱偉,趙春光 等編著", ISBN 978-7-121-28573-8
+的C++演算法程式碼
+
 ---碁峰, "The C++ Programming Language", Bjarne Stroustrup, ISBN 978-986-347-603-0
 的C++範例程式
 

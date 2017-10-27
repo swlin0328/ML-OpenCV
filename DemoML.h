@@ -2,7 +2,7 @@
 #include "Supervise_Learning.h"
 #include "unSupervise_Learning.h"
 #include "NLP.h"
-#include "opencv2\opencv.hpp"
+#include "cvlib.h"
 
 void Demo_Neuron();
 
@@ -25,3 +25,5 @@ void Demo_interest_topics();
 void Demo_bottom_up_cluster();
 
 void Demo_NaiveBayesClassifier();
+
+void Demo_Camera();

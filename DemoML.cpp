@@ -350,3 +350,22 @@ void Demo_NaiveBayesClassifier()
 		cout << "The predicted probability to be spam is " << round(10000*spam_probability[i]) / 100 << "%\n";
 	}
 }
+
+void Demo_Camera()
+{
+	VideoCapture cap;
+	// open the default camera, use something different from 0 otherwise;
+	if (!cap.open(0))
+	{
+		return;
+	}
+
+	while (true)
+	{
+		Mat frame;
+		cap >> frame;
+		if (frame.empty()) break; // end of video stream
+		imshow("Camera", frame);
+		if (waitKey(10) == 27) break; // stop capturing by pressing ESC 
+	}
+}
