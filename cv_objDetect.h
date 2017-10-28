@@ -51,6 +51,12 @@ namespace cv_lib
 	//人臉辨識
 	Mat dectect_Skin_Color(Mat& srcImage);
 
+	void detectFaces(Mat frame, CascadeClassifier face_cascade, CascadeClassifier eye_cascade);
+
+	int detectEye(Mat& srcImage, Mat& target, Rect& eyeRect, CascadeClassifier face_cascade, CascadeClassifier eye_cascade);
+	
+	void trackEye(Mat& srcImage, Mat& target, Rect& eyeRect);
+
 	//車牌辨識
 	Mat detect_License_Plate(Mat& srcImage);
 
@@ -61,4 +67,18 @@ namespace cv_lib
 	vector<Rect> mserGetPlate(Mat srcImage);
 
 	Mat char_feature(Mat srcImage);
+
+	//特徵點鑑別
+	Mat getRansacMat(const vector<DMatch>& matches, vector<KeyPoint>& keypoints1, vector<KeyPoint>& keypoints2, vector<DMatch>& outMatches, bool refineF = true);
+
+	//影像穩定
+	void videoOutput(Ptr<videostab::IFrameSource> stabFrames, string outputPath, double outputFps = 20);
+
+	void cacStabVideo(Ptr<videostab::IFrameSource> stabFrames, string inputPath, string outputPath);
+
+	//背景建模
+	void detectBackGround(Ptr<BackgroundSubtractorKNN> pBackgroundKnn, string videoFileName);
+
+	//運動目標檢測
+	vector<Rect> get_foreground_objects(Mat scene, Ptr<BackgroundSubtractorKNN> pBackgrounndKnn, double scale, bool isFlag);
 }

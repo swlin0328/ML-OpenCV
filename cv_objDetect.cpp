@@ -630,14 +630,301 @@ namespace cv_lib
 		Mat proj_row, proj_col;
 		reduce(gray, proj_row, 0, CV_REDUCE_SUM);
 		reduce(gray, proj_col, 1, CV_REDUCE_SUM);
-		float* tp = (float*)feature.data;
-		float* dd = (float*)proj_row.data;
 
 		for (int i = 64; i < 80; i++)
 		{
-			tp[i] = dd[i - 64];
+			feature.data[i] = proj_row.data[i - 64];
 		}
 		feature.colRange(80, 112) = proj_col.t();
 		return feature;
+	}
+
+	Mat getRansacMat(const vector<DMatch>& matches, vector<KeyPoint>& keypoints1, vector<KeyPoint>& keypoints2, vector<DMatch>& outMatches, bool refineF)
+	{
+		Mat featureMat;
+		vector<Point2f> points1, points2;
+
+		for (vector<DMatch>::const_iterator iter = matches.begin(); iter != matches.end(); iter++)
+		{
+			float x = keypoints1[iter->queryIdx].pt.x;
+			float y = keypoints1[iter->queryIdx].pt.y;
+			points1.push_back(Point2f(x, y));
+
+			x = keypoints2[iter->trainIdx].pt.x;
+			y = keypoints2[iter->trainIdx].pt.y;
+			points2.push_back(Point2f(x, y));
+		}
+
+		//計算good特徵矩陣
+		vector<uchar> inliers(points1.size(), 0);
+		if (points1.size() > 0 && points2.size() > 0)
+		{
+			//計算兩幅圖對應點的特徵矩陣
+			Mat featureMat = findFundamentalMat(Mat(points1), Mat(points2), inliers, CV_FM_RANSAC);
+			vector<DMatch>::const_iterator iter_match = matches.begin();
+
+			for (vector<uchar>::const_iterator iter_inlier = inliers.begin(); iter_inlier != inliers.end(); iter_inlier++, iter_match++)
+			{
+				if (*iter_inlier)
+				{
+					outMatches.push_back(*iter_match);
+				}
+			}
+			if (refineF)
+			{
+				points1.clear();
+				points2.clear();
+				for (vector<DMatch>::const_iterator iter = outMatches.begin(); iter != outMatches.end(); iter++)
+				{
+					float x = keypoints1[iter->queryIdx].pt.x;
+					float y = keypoints1[iter->queryIdx].pt.y;
+					points1.push_back(Point2f(x, y));
+
+					x = keypoints2[iter->trainIdx].pt.x;
+					y = keypoints2[iter->trainIdx].pt.y;
+					points2.push_back(Point2f(x, y));
+				}
+
+				//計算兩幅圖的特徵矩陣
+				if (points1.size() > 0 && points2.size())
+				{
+					featureMat = findFundamentalMat(Mat(points1), Mat(points2), CV_FM_8POINT);
+				}
+			}
+		}
+		return featureMat;
+	}
+
+	void videoOutput(Ptr<videostab::IFrameSource> stabFrames, string outputPath, double outputFps)
+	{
+		VideoWriter writer;
+		Mat stabFrame;
+		int nframes = 0;
+
+		while (!(stabFrame = stabFrames->nextFrame()).empty())
+		{
+			nframes++;
+			if (!outputPath.empty())
+			{
+				if (!writer.isOpened())
+				{
+					writer.open(outputPath, VideoWriter::fourcc('X', 'V', 'I', 'D'), outputFps, stabFrame.size());
+
+				}
+				writer << stabFrame;
+			}
+			imshow("stabFrame", stabFrame);
+			char key = static_cast<char>(waitKey(10));
+			if (key == 27)
+			{
+				break;
+			}
+		}
+		cout << "nFrames: " << nframes << endl;
+		cout << "finished!" << endl;
+	}
+
+	void cacStabVideo(Ptr<videostab::IFrameSource> stabFrames, string inputPath, string outputPath)
+	{
+		try
+		{
+			Ptr <videostab::VideoFileSource> srcVideo = makePtr<videostab::VideoFileSource>(inputPath);
+			double estPara = 0.1;
+			Ptr<videostab::MotionEstimatorRansacL2> est = makePtr<videostab::MotionEstimatorRansacL2>(videostab::MM_AFFINE);
+
+			videostab::RansacParams ransac = est->ransacParams();
+			ransac.size = 3;
+			ransac.thresh = 5;
+			ransac.eps = 0.5;
+			est->setRansacParams(ransac);
+			est->setMinInlierRatio(estPara);
+
+			Ptr<FastFeatureDetector> feature_detector = FastFeatureDetector::create();
+			Ptr<videostab::KeypointBasedMotionEstimator> motionEstBuilder = makePtr<videostab::KeypointBasedMotionEstimator>(est);
+			motionEstBuilder->setDetector(feature_detector);
+			Ptr<videostab::IOutlierRejector> outlierRejector = makePtr<videostab::NullOutlierRejector>();
+			motionEstBuilder->setOutlierRejector(outlierRejector);
+			videostab::StabilizerBase* stabilizer = 0;
+		
+			bool isTwoPass = 1;
+			int radius_pass = 15;
+			if (isTwoPass)
+			{
+				bool est_trim = true;
+				videostab::TwoPassStabilizer* twoPassStabilizer = new videostab::TwoPassStabilizer();
+				twoPassStabilizer->setEstimateTrimRatio(est_trim);
+				twoPassStabilizer->setMotionStabilizer(makePtr<videostab::GaussianMotionFilter>(radius_pass));
+				stabilizer = twoPassStabilizer;
+			}
+			else
+			{
+				videostab::OnePassStabilizer* onePassStabilizer = new videostab::OnePassStabilizer();
+				onePassStabilizer->setMotionFilter(makePtr<videostab::GaussianMotionFilter>(radius_pass));
+				stabilizer = onePassStabilizer;
+			}
+
+			int radius = 15;
+			double trim_ratio = 0.1;
+			bool incl_constr = false;
+
+			stabilizer->setFrameSource(srcVideo);
+			stabilizer->setMotionEstimator(motionEstBuilder);
+			stabilizer->setRadius(radius);
+			stabilizer->setTrimRatio(trim_ratio);
+			stabilizer->setCorrectionForInclusion(incl_constr);
+			stabilizer->setBorderMode(BORDER_REPLICATE);
+
+			stabFrames.reset(dynamic_cast<videostab::IFrameSource*>(stabilizer));
+			videoOutput(stabFrames, outputPath);
+		}
+		catch (const exception& err)
+		{
+			cout << "error: " << err.what() << endl;
+			stabFrames.release();
+		}
+	}
+
+	void detectBackGround(Ptr<BackgroundSubtractorKNN> pBackgroundKnn, string videoFileName)
+	{
+		Mat frame, FGMask;
+		int keyboard = 0;
+
+		VideoCapture capture(videoFileName);
+		if (!capture.isOpened())
+		{
+			cerr << "Cannot open file!\n";
+		}
+		
+		while ((char)keyboard != 'q' && keyboard != 27)
+		{
+			if (!capture.read(frame))
+			{
+				cerr << "Cannot read file!\n";
+			}
+
+			resize(frame, frame, Size(), 0.2, 0.2);
+			pBackgroundKnn->setDetectShadows(true);
+			pBackgroundKnn->setHistory(200);
+			pBackgroundKnn->setDist2Threshold(600);
+			pBackgroundKnn->setShadowThreshold(0.5);
+			pBackgroundKnn->apply(frame, FGMask);
+
+			stringstream ss;
+			rectangle(frame, Point(10, 2), Point(100, 20), Scalar(255, 255, 255), -1);
+			ss << capture.get(CAP_PROP_POS_FRAMES);
+			string frameNumberString = ss.str();
+			putText(frame, frameNumberString.c_str(), Point(15, 15), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 0, 0));
+			imshow("Frame", frame);
+			imshow("FGMask", FGMask);
+			keyboard = waitKey(30);
+		}
+		capture.release();
+	}
+
+	vector<Rect> get_foreground_objects(Mat scene, Ptr<BackgroundSubtractorKNN> pBackgrounndKnn, double scale, bool isFlag)
+	{
+		if (isFlag == false)
+		{
+			vector<Rect> one_rect;
+			Rect whole;
+			whole.x = whole.y = 0;
+			whole.height = scene.rows;
+			whole.width = scene.cols;
+			one_rect.push_back(whole);
+			return one_rect;
+		}
+
+		Mat img;
+		resize(scene, img, Size(0, 0), scale, scale);
+		Mat FGMask, FGImg, BGImg;
+
+		pBackgrounndKnn->apply(img, FGMask);
+		medianBlur(FGMask, FGMask, 5);
+		morphologyEx(FGMask, FGMask, MORPH_CLOSE, Mat::ones(15, 3, CV_8UC1));
+
+		vector<vector<Point>> regioin_contours;
+		findContours(FGMask, regioin_contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
+		vector<Rect> objects;
+
+		for (int i = 0; i < regioin_contours.size(); i++)
+		{
+			Rect rect = boundingRect(regioin_contours[i]);
+			rect.x /= scale;
+			rect.width /= scale;
+			rect.y /= scale;
+			rect.height /= scale;
+
+			if (rect.area() > scene.total() / 400)
+			{
+				objects.push_back(rect);
+			}
+		}
+		return objects;
+	}
+
+	void detectFaces(Mat frame, CascadeClassifier face_cascade, CascadeClassifier eye_cascade)
+	{
+		vector<Rect> faces;
+		Mat frame_gray;
+		cvtColor(frame, frame_gray, COLOR_BGR2GRAY);
+		equalizeHist(frame_gray, frame_gray);
+
+		face_cascade.detectMultiScale(frame_gray, faces, 1.1, 3, 0 | CASCADE_SCALE_IMAGE, Size(30, 30));
+
+		for (int i = 0; i < faces.size(); i++)
+		{
+			vector<Rect> eyes;
+			Mat face = frame_gray(faces[i]);
+			eye_cascade.detectMultiScale(face, eyes, 1.1, 2, 0 | CASCADE_SCALE_IMAGE, Size(30, 30));
+
+			if (eyes.size() > 0)
+			{
+				rectangle(frame, Point(faces[i].x, faces[i].y), Point(faces[i].x + faces[i].width, faces[i].y + faces[i].height), Scalar(255, 0, 255));
+			}
+		}
+		imshow("Faces detection", frame);
+	}
+
+	int detectEye(Mat& srcImage, Mat& target, Rect& eyeRect, CascadeClassifier face_cascade, CascadeClassifier eye_cascade)
+	{
+		vector<Rect> faces, eyes;
+		face_cascade.detectMultiScale(srcImage, faces, 1.1, 2, 0 | CV_HAAR_SCALE_IMAGE, Size(20, 20));
+
+		for (int i = 0; i < faces.size(); i++)
+		{
+			Mat face = srcImage(faces[i]);
+			eye_cascade.detectMultiScale(face, eyes, 1.1, 2, 0 | CV_HAAR_SCALE_IMAGE, Size(20, 20));
+			
+			if (eyes.size())
+			{
+				eyeRect = eyes[0];
+				target = srcImage(eyeRect);
+			}
+		}
+		return eyes.size();
+	}
+
+	void trackEye(Mat& srcImage, Mat& target, Rect& eyeRect)
+	{
+		Size pSize(eyeRect.width * 2, eyeRect.height * 2);
+		Rect tRect(eyeRect + pSize - Point(pSize.width / 2, pSize.height / 2));
+		tRect &= Rect(0, 0, srcImage.cols, srcImage.rows);
+		Mat tempMat(tRect.width - target.rows + 1, tRect.height - target.cols + 1, CV_32FC1);
+
+		matchTemplate(srcImage(tRect), target, tempMat, CV_TM_SQDIFF_NORMED);
+		double minVal, maxVal;
+		Point minLoc, maxLoc;
+		minMaxLoc(tempMat, &minVal, &maxVal, &minLoc, &maxLoc);
+
+		if (minVal <= 0.2)
+		{
+			eyeRect.x = tRect.x + minLoc.x;
+			eyeRect.y = tRect.y + minLoc.y;
+		}
+		else
+		{
+			eyeRect.x = eyeRect.y = 0;
+			eyeRect.width = eyeRect.height = 0;
+		}
 	}
 }
