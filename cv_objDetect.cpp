@@ -28,19 +28,18 @@ namespace cv_lib
 		*/
 		vector<Mat> hsvImage = hsv_Analysis(srcImage);
 		Mat bw_blue = ((hsvImage[0] > 0.45) & (hsvImage[0] < 0.75) & (hsvImage[1] > 0.15) & (hsvImage[2] > 0.25));
-		int height = bw_blue.rows;
-		int width = bw_blue.cols;
 		Mat bw_blue_edge = Mat::zeros(bw_blue.size(), bw_blue.type());
 
-		Mat sobelMat;
-		SobelVerEdge(srcImage, sobelMat);
+		Mat sobelMat, srcGray;
+		cvtColor(srcImage, srcGray, COLOR_BGR2GRAY);
+		SobelVerEdge(srcGray, sobelMat);
 
+		namedWindow("bw_blue", CV_WINDOW_AUTOSIZE);
 		imshow("bw_blue", bw_blue);
-		waitKey(0);
 
-		for (int i = 1; i < height - 2; i++)
+		for (int i = 1; i < bw_blue.rows - 2; i++)
 		{
-			for (int j = 1; j < width - 2; j++)
+			for (int j = 1; j < bw_blue.cols - 2; j++)
 			{
 				Rect rct;
 				rct.x = j - 1;
@@ -59,11 +58,10 @@ namespace cv_lib
 
 	vector<Mat> extract_License_Plate(Mat& srcImage)
 	{
+		cvWaitKey(0);
 		Mat morph, bw_blue_edge = detect_License_Plate(srcImage);
 		vector<Mat> plates;
 		morphologyEx(bw_blue_edge, morph, MORPH_CLOSE, Mat::ones(2, 25, CV_8UC1));
-		imshow("morphology_bw_blue_edge", bw_blue_edge);
-		waitKey(0);
 
 		vector<vector<Point>> region_contours;
 		findContours(morph.clone(), region_contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
@@ -79,18 +77,26 @@ namespace cv_lib
 
 			if (ratio > 0.5 && wh_ratio > 2 && wh_ratio < 5 && rect.height > 12 && rect.width > 60)
 			{
-				imshow("rect", srcImage(rect));
+				string windowName = "Plate " + n;
+				namedWindow(windowName, CV_WINDOW_AUTOSIZE);
+				imshow(windowName, srcImage(rect));
+				cvWaitKey(0);
+
 				plates.push_back(srcImage(rect));
-				waitKey(0);
 			}
 		}
 		return plates;
 	}
 
-	vector<Mat> extract_License_Plate_by_MorphologyEx(Mat& srcGray, int width, int height)
+	vector<Mat> extract_License_Plate_by_MorphologyEx(Mat& srcImg)
 	{
 		Mat result;
 		vector<Mat> plates;
+		Mat srcGray;
+		int width = srcGray.cols;
+		int height = srcGray.rows;
+
+		cvtColor(srcImg, srcGray, CV_BGR2GRAY);
 		morphologyEx(srcGray, result, MORPH_GRADIENT, Mat(1, 2, CV_8U, Scalar(1)));
 		threshold(result, result, 255 * (0.1), 255, THRESH_BINARY);
 
@@ -127,6 +133,7 @@ namespace cv_lib
 		{
 			morphologyEx(result, result, MORPH_CLOSE, Mat(4, 1, CV_8U, Scalar(1)));
 		}
+
 		vector<vector<Point>> blue_contours;
 		vector<Rect> blue_rect;
 		findContours(result.clone(), blue_contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
@@ -503,12 +510,12 @@ namespace cv_lib
 
 		Ptr<MSER> regMser = MSER::create(2, 10, 5000, 0.5, 0.3);
 		vector<vector<Point>> regContours;
-		std::vector<cv::Rect> regRects;
+		vector<Rect> regRects;
 		regMser->detectRegions(gray, regContours, regRects);
 
 		Ptr<MSER> charMser = MSER::create(2, 2, 400, 0.1, 0.3);
 		vector<vector<Point>> charContours;
-		std::vector<cv::Rect> charRects;
+		vector<Rect> charRects;
 		charMser->detectRegions(gray_neg, charContours, charRects);
 
 		Mat mserMapMat = Mat::zeros(srcImage.size(), CV_8UC1);
@@ -532,15 +539,19 @@ namespace cv_lib
 				mserNegMapMat.at<unsigned char>(pt) = 255;
 			}
 		}
-
 		Mat mserResMat;
 		mserResMat = mserMapMat & mserNegMapMat;
+
+		namedWindow("mserMapMat", CV_WINDOW_AUTOSIZE);
 		imshow("mserMapMat", mserMapMat);
+		namedWindow("mserNegMapMat", CV_WINDOW_AUTOSIZE);
 		imshow("mserNegMapMat", mserNegMapMat);
+		namedWindow("mserResMat", CV_WINDOW_AUTOSIZE);
 		imshow("mserResMat", mserResMat);
 
 		Mat mserClosedMat;
 		morphologyEx(mserResMat, mserClosedMat, MORPH_CLOSE, Mat::ones(1, 20, CV_8UC1));
+		namedWindow("mserClosedMat", CV_WINDOW_AUTOSIZE);
 		imshow("mserClosedMat", mserClosedMat);
 
 		vector<vector<Point>> plate_contours;

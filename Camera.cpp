@@ -36,6 +36,8 @@ int main(void)
 	//Demo_interest_topics();
 	//Demo_bottom_up_cluster();
 	//Demo_NaiveBayesClassifier();
+
+	//Demo_detect_car_plate();
 	
 	system("pause");
 	return 0;

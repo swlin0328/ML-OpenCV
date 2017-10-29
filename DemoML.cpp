@@ -369,3 +369,63 @@ void Demo_Camera()
 		if (waitKey(10) == 27) break; // stop capturing by pressing ESC 
 	}
 }
+
+void Demo_detect_car_plate()
+{
+	vector<Mat> srcImages;
+	vector<string> srcImgPaths;
+	string folderPath{R"(C:\Users\Acer\Desktop\ML作品集2017.10.29\測試數據集\plate_recognition)"};
+	cv_lib::readImgNamefromFile(folderPath, srcImgPaths);
+
+	for (int i = 0; i < srcImgPaths.size(); i++)
+	{
+		Mat img = imread(srcImgPaths[i], CV_LOAD_IMAGE_COLOR);
+		srcImages.push_back(img);
+	}
+
+	cout << "extract plate by Specified Color Region \n";
+	for (int i = 0; i < srcImages.size(); i++)
+	{
+		cv_lib::extract_License_Plate(srcImages[i]);
+	}
+}
+
+void Demo_detect_car_plate_MSER()
+{
+	vector<Mat> srcImages;
+	vector<string> srcImgPaths;
+	string folderPath{ R"(C:\Users\Acer\Desktop\ML作品集2017.10.29\測試數據集\plate_recognition)" };
+	cv_lib::readImgNamefromFile(folderPath, srcImgPaths);
+
+	for (int i = 0; i < srcImgPaths.size(); i++)
+	{
+		Mat img = imread(srcImgPaths[i], CV_LOAD_IMAGE_COLOR);
+		srcImages.push_back(img);
+	}
+
+	cout << "extract plate by MSER \n";
+	for (int i = 0; i < srcImages.size(); i++)
+	{
+		cv_lib::mserGetPlate(srcImages[i]);
+	}
+}
+
+void Demo_detect_car_plate_Morphology()
+{
+	vector<Mat> srcImages;
+	vector<string> srcImgPaths;
+	string folderPath{ R"(C:\Users\Acer\Desktop\ML作品集2017.10.29\測試數據集\plate_recognition)" };
+	cv_lib::readImgNamefromFile(folderPath, srcImgPaths);
+
+	for (int i = 0; i < srcImgPaths.size(); i++)
+	{
+		Mat img = imread(srcImgPaths[i], CV_LOAD_IMAGE_COLOR);
+		srcImages.push_back(img);
+	}
+
+	cout << "extract plate by Morphology Gradient \n";
+	for (int i = 0; i < srcImages.size(); i++)
+	{
+		cv_lib::extract_License_Plate_by_MorphologyEx(srcImages[i]);
+	}
+}

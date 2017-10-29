@@ -106,5 +106,5 @@ namespace cv_lib
 	Scalar MSSIM(const Mat& Img1, const Mat& Img2); //計算MSSIM結構相似性，返回值0到1，值越大越好
 
 	//影像讀取
-	void readImgNamefromFile(char* fileName, vector<string>& imgNames);
+	void readImgNamefromFile(string folderName, vector<string>& imgPaths);
 }

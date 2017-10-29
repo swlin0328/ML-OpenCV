@@ -27,3 +27,9 @@ void Demo_bottom_up_cluster();
 void Demo_NaiveBayesClassifier();
 
 void Demo_Camera();
+
+void Demo_detect_car_plate();
+
+void Demo_detect_car_plate_Morphology();
+
+void Demo_detect_car_plate_MSER();

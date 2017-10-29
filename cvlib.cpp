@@ -178,23 +178,24 @@ namespace cv_lib
 		imshow("showWindowImages", showWindowImages);
 	}
 
-	void readImgNamefromFile(char* fileName, vector<string>& imgNames)
+	void readImgNamefromFile(string folderName, vector<string>& imgPaths)
 	{
-		imgNames.clear();
+		imgPaths.clear();
 		WIN32_FIND_DATA file;
 		int i = 0;
 		char tempFilePath[MAX_PATH + 1];
-		char tempFileName[50];
 
-		sprintf_s(tempFilePath, "%s/*", fileName);
+		sprintf_s(tempFilePath, "%s/*", folderName.c_str());
 		HANDLE handle = FindFirstFile(tempFilePath, &file);
+		FindNextFile(handle, &file);
+		FindNextFile(handle, &file);
 		if (handle != INVALID_HANDLE_VALUE)
 		{
 			do
 			{
-				sprintf_s(tempFileName, "%s", fileName);
-				imgNames.push_back(file.cFileName);
-				imgNames[i].insert(0, tempFileName);
+				sprintf_s(tempFilePath, "%s\\", folderName.c_str());
+				imgPaths.push_back(file.cFileName);
+				imgPaths[i].insert(0, tempFilePath);
 				i++;
 			} while (FindNextFile(handle, &file));
 		}
@@ -1111,8 +1112,6 @@ namespace cv_lib
 		Mat img_h, img_s, img_v, imghsv;
 		vector<Mat> hsv_vec;
 		cvtColor(srcImage, imghsv, CV_BGR2HSV);
-		imshow("hsv", imghsv);
-		waitKey(0);
 
 		split(imghsv, hsv_vec);
 		img_h = hsv_vec[0];
@@ -1131,6 +1130,9 @@ namespace cv_lib
 		img_h /= max_h;
 		img_s /= max_s;
 		img_v /= max_v;
+
+		namedWindow("h_channel", CV_WINDOW_AUTOSIZE);
+		imshow("h_channel", img_h);
 		return vector<Mat>{img_h, img_s, img_v};
 	}
 
@@ -1169,7 +1171,6 @@ namespace cv_lib
 			}
 		}
 		resultTempMat.convertTo(resultImage, CV_8UC1);
-		resultImage = resultTempMat.clone();
 		return true;
 	}
 

@@ -12,6 +12,7 @@
 #include <set>
 #include <iostream>
 #include <opencv2/opencv.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 #include "opencv2/core/core.hpp"
 #include "opencv2/features2d/features2d.hpp"
 #include "opencv2/highgui/highgui.hpp"
@@ -62,7 +63,7 @@ namespace cv_lib
 
 	vector<Mat> extract_License_Plate(Mat& srcImage);
 
-	vector<Mat> extract_License_Plate_by_MorphologyEx(Mat& srcGray, int width, int height);
+	vector<Mat> extract_License_Plate_by_MorphologyEx(Mat& srcImg);
 
 	vector<Rect> mserGetPlate(Mat srcImage);
 
