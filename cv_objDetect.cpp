@@ -36,6 +36,7 @@ namespace cv_lib
 
 		namedWindow("bw_blue", CV_WINDOW_AUTOSIZE);
 		imshow("bw_blue", bw_blue);
+		cvWaitKey(1000);
 
 		for (int i = 1; i < bw_blue.rows - 2; i++)
 		{
@@ -58,7 +59,6 @@ namespace cv_lib
 
 	vector<Mat> extract_License_Plate(Mat& srcImage)
 	{
-		cvWaitKey(0);
 		Mat morph, bw_blue_edge = detect_License_Plate(srcImage);
 		vector<Mat> plates;
 		morphologyEx(bw_blue_edge, morph, MORPH_CLOSE, Mat::ones(2, 25, CV_8UC1));
@@ -77,10 +77,10 @@ namespace cv_lib
 
 			if (ratio > 0.5 && wh_ratio > 2 && wh_ratio < 5 && rect.height > 12 && rect.width > 60)
 			{
-				string windowName = "Plate " + n;
+				string windowName = "Plate " + dataManipulate::to_word(n);
 				namedWindow(windowName, CV_WINDOW_AUTOSIZE);
 				imshow(windowName, srcImage(rect));
-				cvWaitKey(0);
+				cvWaitKey(1000);
 
 				plates.push_back(srcImage(rect));
 			}
@@ -149,12 +149,15 @@ namespace cv_lib
 			{
 				blue_rect.push_back(rect);
 				plates.push_back(srcGray(rect));
-				imshow("rect", srcGray(rect));
-				waitKey(0);
+
+				string windowName = "Plate " + dataManipulate::to_word(i);
+				cvNamedWindow(windowName.c_str(), CV_WINDOW_AUTOSIZE);
+				imshow(windowName.c_str(), srcGray(rect));
+				cvWaitKey(1000);
 			}
 		}
 		imshow("result", result);
-		waitKey(0);
+		cvWaitKey(1000);
 		return plates;
 	}
 
@@ -507,26 +510,26 @@ namespace cv_lib
 		Mat gray, gray_neg;
 		cvtColor(srcImage, gray, CV_BGR2GRAY);
 		gray_neg = 255 - gray;
-
-		Ptr<MSER> regMser = MSER::create(2, 10, 5000, 0.5, 0.3);
+		
+		Ptr<MSER> regMser = MSER::create(3, 20, 5000, 0.5, 0.3);
 		vector<vector<Point>> regContours;
 		vector<Rect> regRects;
 		regMser->detectRegions(gray, regContours, regRects);
 
-		Ptr<MSER> charMser = MSER::create(2, 2, 400, 0.1, 0.3);
+		Ptr<MSER> charMser = MSER::create(3, 5, 400, 0.1, 0.3);
 		vector<vector<Point>> charContours;
 		vector<Rect> charRects;
 		charMser->detectRegions(gray_neg, charContours, charRects);
 
 		Mat mserMapMat = Mat::zeros(srcImage.size(), CV_8UC1);
 		Mat mserNegMapMat = Mat::zeros(srcImage.size(), CV_8UC1);
-		for (int i = 0 - 1; i < regContours.size(); i++)
+		for (int i = 0; i < regContours.size(); i++)
 		{
 			const vector<Point>& r = regContours[i];
 			for (int j = 0; j < r.size(); j++)
 			{
 				Point pt = r[j];
-				mserMapMat.at<unsigned char>(pt) = 255;
+				mserMapMat.at<uchar>(pt) = 255;
 			}
 		}
 
@@ -536,7 +539,7 @@ namespace cv_lib
 			for (int j = 0; j < r.size(); j++)
 			{
 				Point pt = r[j];
-				mserNegMapMat.at<unsigned char>(pt) = 255;
+				mserNegMapMat.at<uchar>(pt) = 255;
 			}
 		}
 		Mat mserResMat;
@@ -544,15 +547,19 @@ namespace cv_lib
 
 		namedWindow("mserMapMat", CV_WINDOW_AUTOSIZE);
 		imshow("mserMapMat", mserMapMat);
+		cvWaitKey(1000);
 		namedWindow("mserNegMapMat", CV_WINDOW_AUTOSIZE);
 		imshow("mserNegMapMat", mserNegMapMat);
+		cvWaitKey(1000);
 		namedWindow("mserResMat", CV_WINDOW_AUTOSIZE);
 		imshow("mserResMat", mserResMat);
+		cvWaitKey(1000);
 
 		Mat mserClosedMat;
-		morphologyEx(mserResMat, mserClosedMat, MORPH_CLOSE, Mat::ones(1, 20, CV_8UC1));
+		morphologyEx(mserResMat, mserClosedMat, MORPH_CLOSE, Mat::ones(1, 25, CV_8UC1));
 		namedWindow("mserClosedMat", CV_WINDOW_AUTOSIZE);
 		imshow("mserClosedMat", mserClosedMat);
+		cvWaitKey(1000);
 
 		vector<vector<Point>> plate_contours;
 		findContours(mserClosedMat, plate_contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));	
@@ -562,8 +569,14 @@ namespace cv_lib
 		{
 			Rect rect = boundingRect(plate_contours[i]);
 			double wh_ratio = rect.width / double(rect.height);
-			if (rect.height > 20 && wh_ratio > 4 && wh_ratio < 7)
+
+			if (wh_ratio > 2.5 && wh_ratio < 5.0 && rect.height > 30 && rect.height < 50)
 			{
+				string windowName = "Plate " + dataManipulate::to_word(i);
+				namedWindow(windowName, CV_WINDOW_AUTOSIZE);
+				imshow(windowName, srcImage(rect));
+				cvWaitKey(1000);
+
 				candidates.push_back(rect);
 			}
 		}

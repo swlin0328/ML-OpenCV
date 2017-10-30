@@ -11,11 +11,14 @@
 #include <map>
 #include <set>
 #include <iostream>
+#include <sstream>
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include "opencv2/core/core.hpp"
 #include "opencv2/features2d/features2d.hpp"
+#include "opencv2/features2d.hpp"
 #include "opencv2/highgui/highgui.hpp"
+#include "dataManipulate.h"
 
 #define __cv_objDetect
 
@@ -65,7 +68,7 @@ namespace cv_lib
 
 	vector<Mat> extract_License_Plate_by_MorphologyEx(Mat& srcImg);
 
-	vector<Rect> mserGetPlate(Mat srcImage);
+	vector<Rect> mserGetPlate(Mat srcImage); //Debug模式lib有bug 請使用Release Mode
 
 	Mat char_feature(Mat srcImage);
 

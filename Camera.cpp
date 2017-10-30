@@ -38,6 +38,8 @@ int main(void)
 	//Demo_NaiveBayesClassifier();
 
 	//Demo_detect_car_plate();
+	//Demo_detect_car_plate_Morphology();
+	//Demo_detect_car_plate_MSER(); //Debug模式world330d.lib有bug 請使用Release Mode
 	
 	system("pause");
 	return 0;

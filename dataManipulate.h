@@ -82,4 +82,6 @@ namespace dataManipulate
 	int to_int(string data);
 
 	double to_double(string data);
+
+	string to_word(int Val);
 }

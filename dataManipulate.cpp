@@ -444,4 +444,12 @@ namespace dataManipulate
 
 		return val;
 	}
+
+	string to_word(int Val)
+	{
+		char tempWord[20];
+		sprintf_s(tempWord, 20, "%d", Val);
+
+		return string{tempWord};
+	}
 }
