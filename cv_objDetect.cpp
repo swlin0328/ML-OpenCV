@@ -183,13 +183,13 @@ namespace cv_lib
 
 		for (int i = 0; i < srcImage.rows; i++)
 		{
-			uchar* p = (uchar*)tempMat.ptr<uchar>(i);
+			uchar* temp = (uchar*)tempMat.ptr<uchar>(i);
 			Vec3b* YCrCb = (Vec3b*)YCrCbMat.ptr<Vec3b>(i);
 			for (int j = 0; j < srcImage.cols; j++)
 			{
-				if (skinMat.at<uchar>(YCrCb[j][1]), YCrCb[j][2] > 0)
+				if (skinMat.at<uchar>(YCrCb[j][1], YCrCb[j][2]) > 0)
 				{
-					p[j] = 255;
+					temp[j] = 255;
 				}
 			}
 		}
@@ -202,7 +202,7 @@ namespace cv_lib
 
 		for (int i = 0; i < contours.size(); i++)
 		{
-			if (fabs(contourArea(Mat(contours[i]))) > 1000)
+			if (fabs(contourArea(Mat(contours[i]))) > 5000)
 			{
 				resContours.push_back(contours[i]);
 			}
@@ -210,6 +210,10 @@ namespace cv_lib
 		tempMat.setTo(0);
 		drawContours(tempMat, resContours, -1, Scalar(255, 0, 0), CV_FILLED);
 		srcImage.copyTo(resultMat, tempMat);
+
+		namedWindow("skin_region", CV_WINDOW_AUTOSIZE);
+		imshow("skin_region", resultMat);
+		cvWaitKey(1000);
 		return resultMat;
 	}
 
@@ -278,8 +282,6 @@ namespace cv_lib
 
 		Mat magnMat, angleMat;
 		cartToPolar(sobelMatX, sobelMatY, magnMat, angleMat, true);
-		add(angleMat, Scalar(180), angleMat, angleMat < 0);
-		add(angleMat, Scalar(-180), angleMat, angleMat >= 0);
 		angleMat /= THETA;
 
 		for (int y = 0; y < srcMat.rows; y++)
@@ -317,41 +319,43 @@ namespace cv_lib
 		}
 	}
 
-	Mat getHOG(Point pt, vector<Mat>& integrals, int cellsize, int blocksize, int THETA)
+	Mat getHOG(Point pt, vector<Mat>& integrals, Size cellsize, int blocksize, int THETA)
 	{
-		int R = cellsize / 2;
-		if (pt.x - R < 0 || pt.y - R < 0 || pt.x + R >= integrals[0].cols || pt.y + R >= integrals[0].rows)
+		int Rx = cellsize.width / 2;
+		int Ry = cellsize.height / 2;
+		if (pt.x - Rx < 0 || pt.y - Ry < 0 || pt.x + Rx >= integrals[0].cols || pt.y + Ry >= integrals[0].rows)
 		{
 			return Mat();
 		}
 
 		int NBINS = 360 / THETA;
 		Mat hist(Size(NBINS * pow(blocksize, 2), 1), CV_32F);
-		Point tl(pt.x - R, pt.y - R);
+		Point tl(pt.x - Rx, pt.y - Ry);
 		int c = 0;
 
 		for (int i = 0; i < blocksize; i++)
 		{
 			for (int j = 0; j < blocksize; j++)
 			{
-				Rect roi(tl, tl + Point(cellsize, cellsize));
+				Rect roi(tl, tl + Point(cellsize.width, cellsize.height));
 				Mat hist_temp = hist.colRange(c, c + NBINS);
 				calculateHOGinCell(hist_temp, roi, integrals);
-				tl.x += cellsize;
+				tl.x += cellsize.width;
 				c += NBINS;
 			}
-			tl.x = pt.x - R;
-			tl.y += cellsize;
+			tl.x = pt.x - Rx;
+			tl.y += cellsize.height;
 		}
 		normalize(hist, hist, 1, 0, NORM_L2);
 		return hist;
 	}
 
-	vector<Mat> cacHOGFeature(Mat srcImage, int cellsize, int THETA)
+	vector<Mat> cacHOGFeature(Mat srcImage, Size cellsize, int THETA)
 	{
-		if (cellsize == -1)
+		if (cellsize.area() == 0)
 		{
-			cellsize = srcImage.cols > srcImage.rows? srcImage.rows/8 : srcImage.cols/8;
+			cellsize.height = srcImage.rows / 8;
+			cellsize.width = srcImage.cols / 8;
 		}
 
 		Mat grayImage;
@@ -359,7 +363,7 @@ namespace cv_lib
 		cvtColor(srcImage, grayImage, CV_RGB2GRAY);
 		grayImage.convertTo(grayImage, CV_8UC1);
 
-		int blocksize = 2; //block = 2*2*cellsize
+		int blocksize = 2; //Num of cell per block = 2*2
 		int NBINS = 360 / THETA;
 		Mat HOGBlockMat(Size(NBINS, 1), CV_32F);
 
@@ -367,12 +371,12 @@ namespace cv_lib
 		Mat image = grayImage.clone();
 		image *= 0.5;
 
-		for (int y = cellsize / 2; y < grayImage.rows; y += cellsize)
+		for (int y = cellsize.height / 2; y < grayImage.rows; y += blocksize*cellsize.height)
 		{
-			for (int x = cellsize / 2; x < grayImage.cols; x += cellsize)
+			for (int x = cellsize.width / 2; x < grayImage.cols; x += blocksize*cellsize.width)
 			{
 				Mat hist = getHOG(Point(x, y), integrals, cellsize, blocksize, THETA);
-				if (hist.empty());
+				if (countNonZero(hist) < 1)
 				{
 					continue;
 				}
@@ -391,8 +395,8 @@ namespace cv_lib
 				Point center(x, y);
 				for (int i = 0; i < NBINS; i++)
 				{
-					double theta = (i*THETA + 90.0) * CV_PI / 180.0;
-					Point rd(cellsize*0.5*cos(theta), cellsize*0.5*sin(theta));
+					double theta = (i*THETA) * CV_PI / 180.0;
+					Point rd(cellsize.width*0.5*cos(theta), cellsize.height*0.5*sin(theta));
 
 					Point rp = center - rd;
 					Point lp = center + rd;
@@ -400,7 +404,9 @@ namespace cv_lib
 				}
 			}
 		}
-		imshow("out", image);
+		namedWindow("HOG_feature", CV_WINDOW_AUTOSIZE);
+		imshow("HOG_feature", image);
+		cvWaitKey(1000);
 		return HOGMatVector;
 	}
 

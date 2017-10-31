@@ -42,9 +42,9 @@ namespace cv_lib
 
 	void calculateHOGinCell(Mat& HOGCellMat, Rect roi, vector<Mat>& integrals); //區域積分直方圖
 
-	Mat getHOG(Point pt, vector<Mat>& integrals, int cellsize, int blocksize, int THETA);
+	Mat getHOG(Point pt, vector<Mat>& integrals, Size cellsize, int blocksize, int THETA);
 
-	vector<Mat> cacHOGFeature(Mat srcImage, int cellsize = -1, int THETA = 20);
+	vector<Mat> cacHOGFeature(Mat srcImage, Size cellsize = Size(0, 0), int THETA = 20);
 
 	double HaarExtract(Mat srcImage, int type, Rect roi);
 

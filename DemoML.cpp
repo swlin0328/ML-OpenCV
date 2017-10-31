@@ -429,3 +429,43 @@ void Demo_detect_car_plate_Morphology()
 		cv_lib::extract_License_Plate_by_MorphologyEx(srcImages[i]);
 	}
 }
+
+void Demo_dectect_Skin()
+{
+	vector<Mat> srcImages;
+	vector<string> srcImgPaths;
+	string folderPath{ R"(C:\Users\Acer\Desktop\ML作品集2017.10.29\測試數據集\face_detection_測試完成)" };
+	cv_lib::readImgNamefromFile(folderPath, srcImgPaths);
+
+	for (int i = 0; i < srcImgPaths.size(); i++)
+	{
+		Mat img = imread(srcImgPaths[i], CV_LOAD_IMAGE_COLOR);
+		srcImages.push_back(img);
+	}
+
+	cout << "extract skin region \n";
+	for (int i = 0; i < srcImages.size(); i++)
+	{
+		cv_lib::dectect_Skin_Color(srcImages[i]);
+	}
+}
+
+void Demo_cacHOGFeature()
+{
+	vector<Mat> srcImages;
+	vector<string> srcImgPaths;
+	string folderPath{ R"(C:\Users\Acer\Desktop\ML作品集2017.10.29\測試數據集\face_detection_測試完成)" };
+	cv_lib::readImgNamefromFile(folderPath, srcImgPaths);
+
+	for (int i = 0; i < srcImgPaths.size(); i++)
+	{
+		Mat img = imread(srcImgPaths[i], CV_LOAD_IMAGE_COLOR);
+		srcImages.push_back(img);
+	}
+
+	cout << "extract skin region \n";
+	Mat face = cv_lib::dectect_Skin_Color(srcImages[0]);
+
+	cout << "Face HOG Feature \n";
+	cv_lib::cacHOGFeature(face);
+}

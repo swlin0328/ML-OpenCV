@@ -40,6 +40,9 @@ int main(void)
 	//Demo_detect_car_plate();
 	//Demo_detect_car_plate_Morphology();
 	//Demo_detect_car_plate_MSER(); //Debug模式world330d.lib有bug 請使用Release Mode
+
+	//Demo_dectect_Skin();
+	//Demo_cacHOGFeature();
 	
 	system("pause");
 	return 0;

@@ -33,3 +33,7 @@ void Demo_detect_car_plate();
 void Demo_detect_car_plate_Morphology();
 
 void Demo_detect_car_plate_MSER();
+
+void Demo_dectect_Skin();
+
+void Demo_cacHOGFeature();
