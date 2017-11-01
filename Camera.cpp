@@ -26,9 +26,6 @@ int main(void)
 	//Demo_NeuralNetwork();
 	//Demo_Ngram();
 
-	//圖像計算，約跑3~5分鐘
-	//Demo_Kmeans();
-
 	//Demo_DecisionTree();
 	//Demo_random_forest();
 	//Demo_KNN();
@@ -37,12 +34,18 @@ int main(void)
 	//Demo_bottom_up_cluster();
 	//Demo_NaiveBayesClassifier();
 
+	//圖像計算，約跑3~5分鐘
+	//Demo_Kmeans();
+
 	//Demo_detect_car_plate();
 	//Demo_detect_car_plate_Morphology();
 	//Demo_detect_car_plate_MSER(); //Debug模式world330d.lib有bug 請使用Release Mode
 
 	//Demo_dectect_Skin();
 	//Demo_cacHOGFeature();
+	//Demo_LPBFeature();
+	//Demo_charFeature();
+	//Demo_ORB_Match(); //Debug模式world330d.lib有bug 請使用Release Mode
 	
 	system("pause");
 	return 0;

@@ -107,4 +107,7 @@ namespace cv_lib
 
 	//影像讀取
 	void readImgNamefromFile(string folderName, vector<string>& imgPaths);
+
+	//矩陣列印
+	void printMat(Mat mat, int prec);
 }

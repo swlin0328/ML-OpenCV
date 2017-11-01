@@ -374,7 +374,7 @@ void Demo_detect_car_plate()
 {
 	vector<Mat> srcImages;
 	vector<string> srcImgPaths;
-	string folderPath{R"(C:\Users\Acer\Desktop\ML作品集2017.10.29\測試數據集\plate_recognition)"};
+	string folderPath{ R"(C:\Users\Acer\Desktop\ML作品集2017.10.29\測試數據集\plate_recognition_測試完成)" };
 	cv_lib::readImgNamefromFile(folderPath, srcImgPaths);
 
 	for (int i = 0; i < srcImgPaths.size(); i++)
@@ -394,7 +394,7 @@ void Demo_detect_car_plate_MSER()
 {
 	vector<Mat> srcImages;
 	vector<string> srcImgPaths;
-	string folderPath{ R"(C:\Users\Acer\Desktop\ML作品集2017.10.29\測試數據集\plate_recognition)" };
+	string folderPath{ R"(C:\Users\Acer\Desktop\ML作品集2017.10.29\測試數據集\plate_recognition_測試完成)" };
 	cv_lib::readImgNamefromFile(folderPath, srcImgPaths);
 
 	for (int i = 0; i < srcImgPaths.size(); i++)
@@ -414,7 +414,7 @@ void Demo_detect_car_plate_Morphology()
 {
 	vector<Mat> srcImages;
 	vector<string> srcImgPaths;
-	string folderPath{ R"(C:\Users\Acer\Desktop\ML作品集2017.10.29\測試數據集\plate_recognition)" };
+	string folderPath{ R"(C:\Users\Acer\Desktop\ML作品集2017.10.29\測試數據集\plate_recognition_測試完成)" };
 	cv_lib::readImgNamefromFile(folderPath, srcImgPaths);
 
 	for (int i = 0; i < srcImgPaths.size(); i++)
@@ -468,4 +468,78 @@ void Demo_cacHOGFeature()
 
 	cout << "Face HOG Feature \n";
 	cv_lib::cacHOGFeature(face);
+}
+
+void Demo_LPBFeature()
+{
+	vector<Mat> srcImages;
+	vector<string> srcImgPaths;
+	string folderPath{ R"(C:\Users\Acer\Desktop\ML作品集2017.10.29\測試數據集\face_detection_測試完成)" };
+	cv_lib::readImgNamefromFile(folderPath, srcImgPaths);
+
+	for (int i = 0; i < srcImgPaths.size(); i++)
+	{
+		Mat img = imread(srcImgPaths[i], CV_LOAD_IMAGE_COLOR);
+		srcImages.push_back(img);
+	}
+
+	cout << "extract skin region \n";
+	Mat face = cv_lib::dectect_Skin_Color(srcImages[0]);
+
+	cout << "Face LPB Feature \n";
+	Mat LBP_Feature = cv_lib::OLBP(face);
+	cvNamedWindow("LBP_Feature", CV_WINDOW_AUTOSIZE);
+	imshow("LBP_Feature", LBP_Feature);
+	cvWaitKey(1000);
+}
+
+void Demo_charFeature()
+{
+	vector<Mat> srcImages;
+	vector<string> srcImgPaths;
+	string folderPath{ R"(C:\Users\Acer\Desktop\ML作品集2017.10.29\測試數據集\face_detection_測試完成)" };
+	cv_lib::readImgNamefromFile(folderPath, srcImgPaths);
+
+	for (int i = 0; i < srcImgPaths.size(); i++)
+	{
+		Mat img = imread(srcImgPaths[i], CV_LOAD_IMAGE_COLOR);
+		srcImages.push_back(img);
+	}
+
+	cout << "extract skin region \n";
+	Mat gray, face = cv_lib::dectect_Skin_Color(srcImages[0]);
+	cvtColor(face, gray, COLOR_BGR2GRAY);
+	
+	vector<vector<Point>> regioin_contours;
+	findContours(gray, regioin_contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
+	vector<Rect> objects;
+
+	for (int i = 0; i < regioin_contours.size(); i++)
+	{
+		Rect rect = boundingRect(regioin_contours[i]);
+		if (rect.area() > 1000)
+		{
+			objects.push_back(rect);
+		}
+	}
+
+	Mat char_Feature = cv_lib::char_feature(face(objects[0]));
+	cv_lib::printMat(char_Feature, 3);
+}
+
+void Demo_ORB_Match()
+{
+	vector<Mat> srcImages;
+	vector<string> srcImgPaths;
+	string folderPath{ R"(C:\Users\Acer\Desktop\ML作品集2017.10.29\測試數據集\plate_recognition_測試完成)" };
+	cv_lib::readImgNamefromFile(folderPath, srcImgPaths);
+
+	for (int i = 0; i < srcImgPaths.size(); i++)
+	{
+		Mat img = imread(srcImgPaths[i], CV_LOAD_IMAGE_COLOR);
+		srcImages.push_back(img);
+	}
+
+	cout << "Cars Matches by ORB Feature \n";
+	cv_lib::cacORBFeatureAndCompare(srcImages[0], srcImages[1]);
 }

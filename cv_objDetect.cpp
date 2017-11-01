@@ -248,6 +248,8 @@ namespace cv_lib
 	Mat cacORBFeatureAndCompare(Mat srcImage1, Mat srcImage2)
 	{
 		CV_Assert(!srcImage1.empty() && !srcImage2.empty());
+		resize(srcImage1, srcImage1, Size(0, 0), 0.3, 0.3);
+		resize(srcImage2, srcImage2, Size(0, 0), 0.9, 0.9);
 
 		Mat desciptorMat1, desciptorMat2, matchMat;
 		vector<KeyPoint> keyPoint1, keyPoint2;
@@ -262,7 +264,9 @@ namespace cv_lib
 		vector<DMatch> matches;
 		matcher.match(desciptorMat1, desciptorMat2, matches);
 		drawMatches(srcImage1, keyPoint1, srcImage2, keyPoint2, matches, matchMat);
-		imshow("Matches", matchMat);
+		cvNamedWindow("ORB_Matches", CV_WINDOW_AUTOSIZE);
+		imshow("ORB_Matches", matchMat);
+		cvWaitKey(1000);
 
 		return matchMat;
 	}
@@ -414,32 +418,34 @@ namespace cv_lib
 	{
 		int nRows = srcImage.rows;
 		int nCols = srcImage.cols;
-		Mat resultMat(srcImage.size(), srcImage.type());
-
+		Mat gray;
+		cvtColor(srcImage, gray, COLOR_BGR2GRAY);
+		
+		Mat resultMat(gray.size(), gray.type());
 		for (int y = 1; y < nRows - 1; y++)
 		{
 			for (int x = 1; x < nCols - 1; x++)
 			{
 				uchar neighbor[8] = { 0 };
-				neighbor[0] = srcImage.at<uchar>(y - 1, x - 1);
-				neighbor[1] = srcImage.at<uchar>(y - 1, x);
-				neighbor[2] = srcImage.at<uchar>(y - 1, x + 1);
-				neighbor[3] = srcImage.at<uchar>(y, x + 1);
-				neighbor[4] = srcImage.at<uchar>(y + 1, x + 1);
-				neighbor[5] = srcImage.at<uchar>(y + 1, x);
-				neighbor[6] = srcImage.at<uchar>(y + 1, x - 1);
-				neighbor[7] = srcImage.at<uchar>(y, x - 1);
+				neighbor[0] = gray.at<uchar>(y - 1, x - 1);
+				neighbor[1] = gray.at<uchar>(y - 1, x);
+				neighbor[2] = gray.at<uchar>(y - 1, x + 1);
+				neighbor[3] = gray.at<uchar>(y, x + 1);
+				neighbor[4] = gray.at<uchar>(y + 1, x + 1);
+				neighbor[5] = gray.at<uchar>(y + 1, x);
+				neighbor[6] = gray.at<uchar>(y + 1, x - 1);
+				neighbor[7] = gray.at<uchar>(y, x - 1);
 
-				uchar center = srcImage.at<uchar>(y, x);
+				uchar center = gray.at<uchar>(y, x);
 				uchar temp = 0;
 				for (int k = 0; k < 8; k++)
 				{
-					temp += (neighbor[k] >= center) * (1 << k);
+					temp += ((neighbor[k] > center) * (1 << k));
 				}
 				resultMat.at<uchar>(y, x) = temp;
 			}
-			return resultMat;
 		}
+		return resultMat;
 	}
 
 	double HaarExtract(Mat srcImage, int type, Rect roi)
@@ -613,7 +619,7 @@ namespace cv_lib
 		filter2D(gray, v_edges, gray.type(), sobel_v_kernel, Point(-1, -1), 0, BORDER_CONSTANT);
 
 		Mat magnitude = Mat(h_edges.size(), CV_32FC1);
-		Mat angle = Mat(h_edges, CV_32FC1);
+		Mat angle = Mat(h_edges.size(), CV_32FC1);
 		cartToPolar(v_edges, h_edges, magnitude, angle);
 
 		Mat eight_direction[8];

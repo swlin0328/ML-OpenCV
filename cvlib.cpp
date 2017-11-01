@@ -1337,4 +1337,21 @@ namespace cv_lib
 		}
 		numSeg = newNumSeg;
 	}
+
+	void printMat(Mat mat, int prec)
+	{
+		for (int i = 0; i < mat.rows; i++)
+		{
+			cout << "[";
+			for (int j = 0; j < mat.cols; j++)
+			{
+				cout << setprecision(prec) << mat.at<float>(i, j);
+				if (j < mat.cols - 1)
+					cout << ", ";
+				else
+					cout << "]" << endl;
+			}
+			cout << endl;
+		}
+	}
 }

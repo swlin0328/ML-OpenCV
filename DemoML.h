@@ -37,3 +37,9 @@ void Demo_detect_car_plate_MSER();
 void Demo_dectect_Skin();
 
 void Demo_cacHOGFeature();
+
+void Demo_LPBFeature();
+
+void Demo_charFeature();
+
+void Demo_ORB_Match();
