@@ -22,6 +22,7 @@ using namespace std;
 
 int main(void)
 {
+	//機器學習相關演算法展示
 	//Demo_Neuron();
 	//Demo_NeuralNetwork();
 	//Demo_Ngram();
@@ -34,9 +35,10 @@ int main(void)
 	//Demo_bottom_up_cluster();
 	//Demo_NaiveBayesClassifier();
 
-	//圖像計算，約跑3~5分鐘
+	//圖像計算，約3~5分鐘
 	//Demo_Kmeans();
 
+	//OpenCV影像相關演算法展示
 	//Demo_detect_car_plate();
 	//Demo_detect_car_plate_Morphology();
 	//Demo_detect_car_plate_MSER(); //Debug模式world330d.lib有bug 請使用Release Mode
@@ -46,6 +48,10 @@ int main(void)
 	//Demo_LPBFeature();
 	//Demo_charFeature();
 	//Demo_ORB_Match(); //Debug模式world330d.lib有bug 請使用Release Mode
+
+	//Demo_Image_Comparison();
+	//Demo_Hisogram_analysis();
+	//Demo_MBitPlan();
 	
 	system("pause");
 	return 0;

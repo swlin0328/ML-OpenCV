@@ -101,9 +101,9 @@ namespace cv_lib
 	void CornerHarris(const Mat& srcImage, Mat& result, int blockSize, int kSize, double k); //blockSize, kSize, k 角點檢測參數
 
 	//圖像比對
-	double PSNR(const Mat& Img1, const Mat& Img2);  //計算PSNR峰值信噪比，返回值30~50dB，值越大越好
+	double PSNR(Mat Img1, Mat Img2);  //計算PSNR峰值信噪比，返回值30~50dB，值越大越好
 
-	Scalar MSSIM(const Mat& Img1, const Mat& Img2); //計算MSSIM結構相似性，返回值0到1，值越大越好
+	Scalar MSSIM(Mat Img1, Mat Img2); //計算MSSIM結構相似性，返回值0到1，值越大越好
 
 	//影像讀取
 	void readImgNamefromFile(string folderName, vector<string>& imgPaths);

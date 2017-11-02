@@ -543,3 +543,63 @@ void Demo_ORB_Match()
 	cout << "Cars Matches by ORB Feature \n";
 	cv_lib::cacORBFeatureAndCompare(srcImages[0], srcImages[1]);
 }
+
+void Demo_Image_Comparison()
+{
+	vector<Mat> srcImages;
+	vector<string> srcImgPaths;
+	string folderPath{ R"(C:\Users\Acer\Desktop\ML作品集2017.10.29\測試數據集\plate_recognition_測試完成)" };
+	cv_lib::readImgNamefromFile(folderPath, srcImgPaths);
+
+	for (int i = 0; i < srcImgPaths.size(); i++)
+	{
+		Mat img = imread(srcImgPaths[i], CV_LOAD_IMAGE_COLOR);
+		srcImages.push_back(img);
+	}
+	
+	double PSNR_Val = cv_lib::PSNR(srcImages[0], srcImages[1]);
+	Scalar MSSIM_Val = cv_lib::MSSIM(srcImages[0], srcImages[1]);
+
+	cout << "Histogram Comparison: \n";
+	cv_lib::histogram_Comparison(srcImages[0], srcImages[1]);
+
+	cout << "PSNR Comparison: \n";
+	cout << PSNR_Val << endl;
+	
+	cout << "MSSIM Comparison: \n";
+	cout << MSSIM_Val << endl;
+}
+
+void Demo_Hisogram_analysis()
+{
+	vector<Mat> srcImages;
+	vector<string> srcImgPaths;
+	string folderPath{ R"(C:\Users\Acer\Desktop\ML作品集2017.10.29\測試數據集\face_detection_測試完成)" };
+	cv_lib::readImgNamefromFile(folderPath, srcImgPaths);
+
+	for (int i = 0; i < srcImgPaths.size(); i++)
+	{
+		Mat img = imread(srcImgPaths[i], CV_LOAD_IMAGE_COLOR);
+		srcImages.push_back(img);
+	}
+
+	cv_lib::show_Gray_Histogram(srcImages[0]);
+	cv_lib::show_RGB_Histogram(srcImages[0]);
+}
+
+
+void Demo_MBitPlan()
+{
+	vector<Mat> srcImages;
+	vector<string> srcImgPaths;
+	string folderPath{ R"(C:\Users\Acer\Desktop\ML作品集2017.10.29\測試數據集\face_detection_測試完成)" };
+	cv_lib::readImgNamefromFile(folderPath, srcImgPaths);
+
+	for (int i = 0; i < srcImgPaths.size(); i++)
+	{
+		Mat img = imread(srcImgPaths[i], CV_LOAD_IMAGE_COLOR);
+		srcImages.push_back(img);
+	}
+
+	cv_lib::showMBitPlan(srcImages[0]);
+}

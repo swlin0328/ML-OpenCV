@@ -43,3 +43,9 @@ void Demo_LPBFeature();
 void Demo_charFeature();
 
 void Demo_ORB_Match();
+
+void Demo_Image_Comparison();
+
+void Demo_Hisogram_analysis();
+
+void Demo_MBitPlan();

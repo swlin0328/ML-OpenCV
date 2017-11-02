@@ -17,14 +17,17 @@
 //電腦視覺
 namespace cv_lib
 {
-	double PSNR(const Mat& Img1, const Mat& Img2)
+	double PSNR(Mat Img1, Mat Img2)
 	{
 		Mat s1;
-		absdiff(Img1, Img2, s1);
+		resize(Img1, Img1, Img1.size());
+		resize(Img2, Img2, Img1.size());
+
 		s1.convertTo(s1, CV_32F);
 		s1 = s1.mul(s1);
 		Scalar s = sum(s1);
 		double sse = s.val[0] + s.val[1] + s.val[2];
+
 
 		if (sse <= 1e-10)
 		{
@@ -38,11 +41,13 @@ namespace cv_lib
 		}
 	}
 
-	Scalar MSSIM(const Mat& Img1, const Mat& Img2)
+	Scalar MSSIM(Mat Img1, Mat Img2)
 	{
 		const double C1 = 6.5025, C2 = 58.5525;
 		Mat I1, I2;
 
+		resize(Img1, Img1, Img1.size());
+		resize(Img2, Img2, Img1.size());
 		Img1.convertTo(I1, CV_32F);
 		Img2.convertTo(I2, CV_32F);
 
@@ -85,6 +90,8 @@ namespace cv_lib
 	{
 		Mat roiImage(srcImage.rows, srcImage.cols, CV_8UC3);
 		srcImage(Rect(xRoi, yRoi, widthRoi, heightRoi)).copyTo(roiImage);
+
+		namedWindow("roiImage", CV_WINDOW_AUTOSIZE);
 		imshow("roiImage", roiImage);
 		waitKey(0);
 	}
@@ -175,7 +182,10 @@ namespace cv_lib
 			resize(srcImages[i], tempImage, Size(nShowImageSize, nShowImageSize));
 			tempPosX += (nSplitLineSize + nShowImageSize);
 		}
+
+		namedWindow("showWindowImages", CV_WINDOW_AUTOSIZE);
 		imshow("showWindowImages", showWindowImages);
+		cvWaitKey(0);
 	}
 
 	void readImgNamefromFile(string folderName, vector<string>& imgPaths)
@@ -278,12 +288,15 @@ namespace cv_lib
 		int bin_w = cvRound((double) hist_w / nHistSize);
 		Mat histImage(hist_w, hist_h, CV_8UC3, Scalar(0, 0, 0));
 		normalize(hist, hist, 0, histImage.rows, NORM_MINMAX, -1, Mat());
+
 		for (int i = 1; i < nHistSize; i++)
 		{
 			line(histImage, Point( bin_w * (i-1), hist_h - cvRound(hist.at<float>(i-1))), Point(bin_w * (i), hist_h - cvRound(hist.at<float>(i))), Scalar(0, 0, 255), 2, 8, 0);
 		}
-		imshow("histImage", histImage);
-		waitKey(0);
+
+		namedWindow("Gray_HistImage", CV_WINDOW_AUTOSIZE);
+		imshow("Gray_HistImage", histImage);
+		waitKey(1000);
 	}
 
 	void show_RGB_Histogram(Mat& srcImage)
@@ -323,8 +336,10 @@ namespace cv_lib
 			line(histImage, Point(bin_w * (i - 1), hist_h - cvRound(g_hist.at<float>(i - 1))), Point(bin_w * (i), hist_h - cvRound(g_hist.at<float>(i))), Scalar(0, 255, 0), 2, 8, 0);
 			line(histImage, Point(bin_w * (i - 1), hist_h - cvRound(r_hist.at<float>(i - 1))), Point(bin_w * (i), hist_h - cvRound(r_hist.at<float>(i))), Scalar(0, 0, 255), 2, 8, 0);
 		}
-		imshow("histImage", histImage);
-		waitKey(0);
+
+		namedWindow("RGB_HistImage", CV_WINDOW_AUTOSIZE);
+		imshow("RGB_HistImage", histImage);
+		waitKey(1000);
 	}
 
 	void histogram_Comparison(Mat& srcImage1, Mat& srcImage2)
@@ -337,8 +352,8 @@ namespace cv_lib
 		Mat hsv_img1, hsv_img2;
 		Mat hsv_half_down;
 
-		cvtColor(srcImage1, hsv_img1, CV_BGR2GRAY);
-		cvtColor(srcImage2, hsv_img2, CV_BGR2GRAY);
+		cvtColor(srcImage1, hsv_img1, CV_BGR2HSV);
+		cvtColor(srcImage2, hsv_img2, CV_BGR2HSV);
 		hsv_half_down = hsv_img1(Range(hsv_img1.rows / 2, hsv_img1.rows - 1), Range(0, hsv_img1.cols - 1));
 
 		int h_bins = 50;
@@ -368,7 +383,7 @@ namespace cv_lib
 			double base_img1 = compareHist(hist_img1, hist_img1, compare_method);
 			double base_img2 = compareHist(hist_img1, hist_img2, compare_method);
 			double base_half = compareHist(hist_img1, hist_half_down, compare_method);
-			printf("Method [%d] Perfect, Base-img2, Base-Half : %f, %f, %f \n", i, base_img1, base_img2, base_half);
+			printf("Method [%d] Perfect, Base-img2, Base-Half : %.3f, %.3f, %.3f \n", i, base_img1, base_img2, base_half);
 		}
 	}
 
@@ -485,34 +500,35 @@ namespace cv_lib
 			nRows = 1;
 		}
 		
+		Mat gray;
+		cvtColor(srcImage, gray, CV_RGB2GRAY);
 		uchar *pSrcMat, *pResultMat;
-		Mat resultImage = srcImage.clone();
 		int pixMax = 0, pixMin = 0;
 		
 		for (int n = 1; n <= 8; n++)
 		{
+			Mat resultImage = Mat::zeros(gray.size(), gray.type());
 			pixMin = pow(2, n - 1);
 			pixMax = pow(2, n);
 			
 			for (int i = 0; i < nRows; i++)
 			{
-				pSrcMat = srcImage.ptr<uchar>(i);
+				pSrcMat = gray.ptr<uchar>(i);
 				pResultMat = resultImage.ptr<uchar>(i);
 				for (int j = 0; j < nCols; j++)
 				{
 					if (pSrcMat[j] >= pixMin && pSrcMat[j] < pixMax)
 					{
-						pResultMat[i] = 255;
-					}
-					else
-					{
-						pResultMat[i] = 0;
+						pResultMat[j] = 255;
 					}
 				}
 			}
 			char windowsName[20];
 			sprintf_s(windowsName, "BitPlane %d", n);
+
+			namedWindow(windowsName, CV_WINDOW_AUTOSIZE);
 			imshow(windowsName, resultImage);
+			cvWaitKey(1000);
 		}
 	}
 
