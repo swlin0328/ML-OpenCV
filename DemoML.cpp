@@ -603,3 +603,21 @@ void Demo_MBitPlan()
 
 	cv_lib::showMBitPlan(srcImages[0]);
 }
+
+void Demo_watershedSegment()
+{
+	vector<Mat> srcImages;
+	vector<string> srcImgPaths;
+	string folderPath{ R"(C:\Users\Acer\Desktop\ML作品集2017.10.29\測試數據集\face_detection_測試完成)" };
+	cv_lib::readImgNamefromFile(folderPath, srcImgPaths);
+
+	for (int i = 0; i < srcImgPaths.size(); i++)
+	{
+		Mat img = imread(srcImgPaths[i], CV_LOAD_IMAGE_COLOR);
+		srcImages.push_back(img);
+	}
+
+	int no_segment;
+	cv_lib::watershedSegment(srcImages[0], no_segment);
+	cout << "No segments = " << no_segment << endl;
+}

@@ -1199,12 +1199,16 @@ namespace cv_lib
 		Mat disTranMat(otsuMat.rows, otsuMat.cols, CV_32FC1);
 		distanceTransform(otsuMat, disTranMat, CV_DIST_L2, 3);
 		normalize(disTranMat, disTranMat, 0.0, 1, NORM_MINMAX);
+		namedWindow("DisTranMat", CV_WINDOW_AUTOSIZE);
 		imshow("DisTranMat", disTranMat);
+		cvWaitKey(1000);
 
 		threshold(disTranMat, disTranMat, 0.1, 1, CV_THRESH_BINARY);
 		normalize(disTranMat, disTranMat, 0.0, 255.0, NORM_MINMAX);
 		disTranMat.convertTo(disTranMat, CV_8UC1);
+		namedWindow("TDisTranMat", CV_WINDOW_AUTOSIZE);
 		imshow("TDisTranMat", disTranMat);
+		cvWaitKey(1000);
 
 		int compCount = 0;
 		vector<vector<Point>> contours;
@@ -1230,7 +1234,9 @@ namespace cv_lib
 
 		watershed(srcImage, markers);
 		Mat wshed = displaySegResult(markers, compCount, srcImage);
+		namedWindow("watershed transform", CV_WINDOW_AUTOSIZE);
 		imshow("watershed transform", wshed);
+		cvWaitKey(1000);
 		noOfSegments = compCount;
 		return markers;
 	}

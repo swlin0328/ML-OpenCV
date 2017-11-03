@@ -49,3 +49,5 @@ void Demo_Image_Comparison();
 void Demo_Hisogram_analysis();
 
 void Demo_MBitPlan();
+
+void Demo_watershedSegment();
