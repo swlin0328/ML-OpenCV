@@ -57,7 +57,7 @@ namespace cv_lib
 
 	void detectFaces(Mat frame, CascadeClassifier face_cascade, CascadeClassifier eye_cascade);
 
-	int detectEye(Mat& srcImage, Mat& target, Rect& eyeRect, CascadeClassifier face_cascade, CascadeClassifier eye_cascade);
+	int detectEye(Mat& srcImage, vector<Rect>& eyeRect, CascadeClassifier face_cascade, CascadeClassifier eye_cascade);
 	
 	void trackEye(Mat& srcImage, Mat& target, Rect& eyeRect);
 

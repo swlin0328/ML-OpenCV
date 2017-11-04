@@ -51,3 +51,7 @@ void Demo_Hisogram_analysis();
 void Demo_MBitPlan();
 
 void Demo_watershedSegment();
+
+void Demo_detect_face();
+
+void Demo_track_eye();

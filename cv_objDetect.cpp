@@ -911,7 +911,7 @@ namespace cv_lib
 		{
 			vector<Rect> eyes;
 			Mat face = frame_gray(faces[i]);
-			eye_cascade.detectMultiScale(face, eyes, 1.1, 2, 0 | CASCADE_SCALE_IMAGE, Size(30, 30));
+			eye_cascade.detectMultiScale(face, eyes, 1.1, 2, 0 | CASCADE_SCALE_IMAGE, Size(10, 10));
 
 			if (eyes.size() > 0)
 			{
@@ -919,22 +919,26 @@ namespace cv_lib
 			}
 		}
 		imshow("Faces detection", frame);
+		cvWaitKey(1000);
 	}
 
-	int detectEye(Mat& srcImage, Mat& target, Rect& eyeRect, CascadeClassifier face_cascade, CascadeClassifier eye_cascade)
+	int detectEye(Mat& srcImage, vector<Rect>& eyesRect, CascadeClassifier face_cascade, CascadeClassifier eye_cascade)
 	{
 		vector<Rect> faces, eyes;
-		face_cascade.detectMultiScale(srcImage, faces, 1.1, 2, 0 | CV_HAAR_SCALE_IMAGE, Size(20, 20));
+		face_cascade.detectMultiScale(srcImage, faces, 1.1, 2, 0 | CV_HAAR_SCALE_IMAGE, Size(30, 30));
 
 		for (int i = 0; i < faces.size(); i++)
 		{
-			Mat face = srcImage(faces[i]);
-			eye_cascade.detectMultiScale(face, eyes, 1.1, 2, 0 | CV_HAAR_SCALE_IMAGE, Size(20, 20));
-			
-			if (eyes.size())
+			Mat Mask = Mat::zeros(srcImage.size(), srcImage.type());
+			Mask(faces[i]).setTo(255);
+
+			Mat target_face = srcImage.clone();
+			target_face &= Mask;
+			eye_cascade.detectMultiScale(target_face, eyes, 1.1, 2, 0 | CV_HAAR_SCALE_IMAGE, Size(10, 10));
+
+			for (int j = 0; j < eyes.size(); j++)
 			{
-				eyeRect = eyes[0];
-				target = srcImage(eyeRect);
+				eyesRect.push_back(eyes[j]);
 			}
 		}
 		return eyes.size();
@@ -944,7 +948,6 @@ namespace cv_lib
 	{
 		Size pSize(eyeRect.width * 2, eyeRect.height * 2);
 		Rect tRect(eyeRect + pSize - Point(pSize.width / 2, pSize.height / 2));
-		tRect &= Rect(0, 0, srcImage.cols, srcImage.rows);
 		Mat tempMat(tRect.width - target.rows + 1, tRect.height - target.cols + 1, CV_32FC1);
 
 		matchTemplate(srcImage(tRect), target, tempMat, CV_TM_SQDIFF_NORMED);

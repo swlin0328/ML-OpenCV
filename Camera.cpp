@@ -44,6 +44,9 @@ int main(void)
 	//Demo_detect_car_plate_MSER(); //Debug模式world330d.lib有bug 請使用Release Mode
 
 	//Demo_dectect_Skin();
+	//Demo_detect_face();
+	//Demo_track_eye();
+
 	//Demo_cacHOGFeature();
 	//Demo_LPBFeature();
 	//Demo_charFeature();

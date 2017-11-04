@@ -621,3 +621,60 @@ void Demo_watershedSegment()
 	cv_lib::watershedSegment(srcImages[0], no_segment);
 	cout << "No segments = " << no_segment << endl;
 }
+
+void Demo_detect_face()
+{
+	vector<Mat> srcImages;
+	vector<string> srcImgPaths;
+	string folderPath{ R"(C:\Users\Acer\Desktop\ML作品集2017.10.29\測試數據集\face_detection_測試完成)" };
+	String face_cascade_name = R"(C:\Users\Acer\Documents\opencv\build\etc\haarcascades\haarcascade_frontalface_alt.xml)";
+	String eyes_cascade_name = R"(C:\Users\Acer\Documents\opencv\build\etc\haarcascades\haarcascade_eye_tree_eyeglasses.xml)";
+
+	cv_lib::readImgNamefromFile(folderPath, srcImgPaths);
+	for (int i = 0; i < srcImgPaths.size(); i++)
+	{
+		Mat img = imread(srcImgPaths[i], CV_LOAD_IMAGE_COLOR);
+		srcImages.push_back(img);
+	}
+
+	CascadeClassifier face_cascade;
+	CascadeClassifier eyes_cascade;
+	if (!face_cascade.load(face_cascade_name)) { printf("Error loading\n"); return; };
+	if (!eyes_cascade.load(eyes_cascade_name)) { printf("Error loading\n"); return; };
+
+	cvNamedWindow("Faces detection", CV_WINDOW_AUTOSIZE);
+	cv_lib::detectFaces(srcImages[0], face_cascade, eyes_cascade);
+}
+
+void Demo_track_eye()
+{
+	vector<Mat> srcImages;
+	vector<string> srcImgPaths;
+	string folderPath{ R"(C:\Users\Acer\Desktop\ML作品集2017.10.29\測試數據集\face_detection_測試完成)" };
+	String face_cascade_name = R"(C:\Users\Acer\Documents\opencv\build\etc\haarcascades\haarcascade_frontalface_alt.xml)";
+	String eyes_cascade_name = R"(C:\Users\Acer\Documents\opencv\build\etc\haarcascades\haarcascade_eye.xml)";
+
+	cv_lib::readImgNamefromFile(folderPath, srcImgPaths);
+	for (int i = 0; i < srcImgPaths.size(); i++)
+	{
+		Mat img = imread(srcImgPaths[i], CV_LOAD_IMAGE_COLOR);
+		srcImages.push_back(img);
+	}
+
+	CascadeClassifier face_cascade;
+	CascadeClassifier eyes_cascade;
+	if (!face_cascade.load(face_cascade_name)) { printf("Error loading\n"); return; };
+	if (!eyes_cascade.load(eyes_cascade_name)) { printf("Error loading\n"); return; };
+
+	Mat target_eye;
+	vector<Rect> eyesRect;
+
+	Mat face = cv_lib::dectect_Skin_Color(srcImages[0]);
+	cv_lib::detectEye(face, eyesRect, face_cascade, eyes_cascade_name);
+	cv_lib::trackEye(face, face(eyesRect[0]), eyesRect[0]);
+
+	cvNamedWindow("Eye detection", CV_WINDOW_AUTOSIZE);
+	rectangle(srcImages[0], Point(eyesRect[0].x, eyesRect[0].y), Point(eyesRect[0].x + eyesRect[0].width, eyesRect[0].y + eyesRect[0].height), Scalar(255, 0, 255));
+	imshow("Eye detection", srcImages[0]);
+	cvWaitKey(1000);
+}
